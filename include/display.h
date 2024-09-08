@@ -48,15 +48,6 @@ public:
             return;
         }
 
-        if (level < 0)
-        {
-            level = 0;
-        }
-        else if (level > 100)
-        {
-            level = 100;
-        }
-
         int levelStartCursor = 15;
 
         if (level == 100)

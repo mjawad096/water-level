@@ -30,11 +30,8 @@ public:
 
     void connectWifi()
     {
-        String wifiSsid = "";
-        String wifiPassword = "";
-
-        wifiSsid = settings.wifiSSID;
-        wifiPassword = settings.wifiPassword;
+        String wifiSsid = settings.wifiSSID;
+        String wifiPassword = settings.wifiPassword;
 
         if (wifiSsid.length() < 5 || wifiPassword.length() < 5)
         {
@@ -85,14 +82,12 @@ public:
 
     void setupAccessPoint()
     {
-        String wifiSsid = getWifiAPName();
+        String apSSID = getWifiAPName();
         String apPassword = "12345678";
-
-        Setting settings;
 
         if (settings.apSSID.length() > 4)
         {
-            wifiSsid = getWifiAPName() + String("_") + settings.apSSID;
+            apSSID = getWifiAPName() + String("_") + settings.apSSID;
         }
 
         if (settings.apPassword.length() > 4)
@@ -100,13 +95,13 @@ public:
             apPassword = settings.apPassword;
         }
 
-        WiFi.softAP(wifiSsid, apPassword);
+        WiFi.softAP(apSSID, apPassword);
 
         IPAddress IP = WiFi.softAPIP();
 
         Serial.println("Wifi AP started:");
         Serial.print("SSID: ");
-        Serial.println(wifiSsid);
+        Serial.println(apSSID);
         Serial.print("IP Address: ");
         Serial.println(IP);
     }

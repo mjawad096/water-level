@@ -68,6 +68,15 @@ public:
 
         double level = (currentFilledDepth / totalActualTankDepth) * 100;
 
+        if (level < 0)
+        {
+            level = 0;
+        }
+        else if (level > 100)
+        {
+            level = 100;
+        }
+
         return (int)round(level);
     }
 };
