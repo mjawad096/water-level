@@ -1,5 +1,6 @@
 #include <esp_now.h>
 #include <WiFi.h>
+#include <wifi_connect.h>
 
 #pragma once
 
@@ -10,11 +11,12 @@ private:
     // uint8_t broadcastAddress2[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
     esp_now_peer_info_t peerInfo;
+    WifiConnect wifiConnect;
 
 public:
     void setup()
     {
-        WiFi.mode(WIFI_STA);
+        wifiConnect.setup();
 
         if (esp_now_init() != ESP_OK)
         {

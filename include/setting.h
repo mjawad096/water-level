@@ -10,7 +10,13 @@ private:
     Preferences preferences;
 
 public:
-    long durationForPing = 300;
+    String apSSID = "";
+    String apPassword = "";
+
+    String wifiSSID = "";
+    String wifiPassword = "";
+
+    long durationForPing = 5; // seconds
     long topEndFromDevice = 0;
     long bottomEndFromDevice = 250;
     long delayStartSwitch = 10; // minutes
@@ -26,8 +32,14 @@ public:
     {
     }
 
-    Setting(const JsonDocument &obj)
+    void fill(const JsonDocument &obj)
     {
+        apSSID = obj["apSSID"].as<String>();
+        apPassword = obj["apPassword"].as<String>();
+
+        wifiSSID = obj["wifiSSID"].as<String>();
+        wifiPassword = obj["wifiPassword"].as<String>();
+
         durationForPing = obj["durationForPing"].as<long>();
         topEndFromDevice = obj["topEndFromDevice"].as<long>();
         bottomEndFromDevice = obj["bottomEndFromDevice"].as<long>();
@@ -37,6 +49,11 @@ public:
         emptyThreshold = obj["emptyThreshold"].as<long>();
         autoOffOnFull = obj["autoOffOnFull"].as<bool>();
         autoOnOnEmpty = obj["autoOnOnEmpty"].as<bool>();
+
+        if (durationForPing == 0)
+        {
+            durationForPing = 5;
+        }
     }
 
     void setup()
@@ -45,7 +62,13 @@ public:
 
         Serial.println("Pref Settings loaded");
 
-        durationForPing = preferences.getLong("durationForPing", 300);
+        apSSID = preferences.getString("apSSID", "");
+        apPassword = preferences.getString("apPassword", "");
+
+        wifiSSID = preferences.getString("wifiSSID", "");
+        wifiPassword = preferences.getString("wifiPassword", "");
+
+        durationForPing = preferences.getLong("durationForPing", 5);
         topEndFromDevice = preferences.getLong("topEndFromDevice", 0);
         bottomEndFromDevice = preferences.getLong("bottomEndFromDevice", 250);
         delayStartSwitch = preferences.getLong("delayStartSwitch", 10);
@@ -62,6 +85,12 @@ public:
     {
         preferences.begin("settings", false);
 
+        preferences.putString("apSSID", apSSID);
+        preferences.putString("apPassword", apPassword);
+
+        preferences.putString("wifiSSID", wifiSSID);
+        preferences.putString("wifiPassword", wifiPassword);
+
         preferences.putLong("durationForPing", durationForPing);
         preferences.putLong("topEndFromDevice", topEndFromDevice);
         preferences.putLong("bottomEndFromDevice", bottomEndFromDevice);
@@ -77,7 +106,13 @@ public:
 
     void reset()
     {
-        durationForPing = 300;
+        apSSID = "";
+        apPassword = "";
+
+        wifiSSID = "";
+        wifiPassword = "";
+
+        durationForPing = 5;
         topEndFromDevice = 0;
         bottomEndFromDevice = 250;
         delayStartSwitch = 10;
@@ -94,6 +129,12 @@ public:
     {
         String data;
         JsonDocument doc;
+
+        doc["apSSID"] = apSSID;
+        doc["apPassword"] = apPassword;
+
+        doc["wifiSSID"] = wifiSSID;
+        doc["wifiPassword"] = wifiPassword;
 
         doc["durationForPing"] = durationForPing;
         doc["topEndFromDevice"] = topEndFromDevice;
@@ -112,6 +153,18 @@ public:
 
     bool validate()
     {
+        if (wifiPassword.length() <= 1 || wifiSSID.length() <= 1)
+        {
+            lastError = "Wifi SSID and password are required";
+            return false;
+        }
+
+        if (apSSID.length() <= 1 || apPassword.length() <= 1)
+        {
+            lastError = "AP SSID and password are required";
+            return false;
+        }
+
         return true;
     }
 };

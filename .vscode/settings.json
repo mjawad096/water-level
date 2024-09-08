@@ -1,5 +1,8 @@
 {
     "editor.defaultFormatter": "ms-vscode.cpptools",
     "editor.formatOnPaste": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "[css]": {
+        "editor.defaultFormatter": "vscode.css-language-features"
+    }
 }

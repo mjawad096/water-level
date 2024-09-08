@@ -4,6 +4,7 @@
 #include "setting.h"
 #include "switch.h"
 #include "waterlevel.h"
+#include "webserver.h"
 
 Display display;
 EspNow espNow;
@@ -11,6 +12,7 @@ Reset reset;
 Setting settings;
 Switch rfSwitch;
 WaterLevel waterLevel;
+WebServer *webServer = new WebServer();
 
 void setup()
 {
@@ -19,6 +21,7 @@ void setup()
     Serial.begin(115200);
 
     espNow.setup();
+    webServer->setup();
     reset.setup();
     settings.setup();
     rfSwitch.setup();
@@ -29,9 +32,20 @@ void setup()
 
 void loop()
 {
+    // Serial.println(settings.toString());
+
+    // Check and reboot if requested
+    if (webServer->rebootRequested())
+    {
+        delay(500);
+        ESP.restart();
+    }
+
     reset.checkForReset();
 
     int level = waterLevel.getLevel();
+
+    webServer->setWaterLevel(level);
 
     display.displayLevel(level);
     espNow.sendWaterLevel(level);
@@ -42,5 +56,5 @@ void loop()
     Serial.print("Level: ");
     Serial.println(level);
 
-    delay(5000);
+    delay(settings.durationForPing * 1000);
 }
