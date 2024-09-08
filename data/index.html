@@ -372,13 +372,46 @@
           init() {
             this.endpoint = this.getBaseUrl();
 
-            setTimeout(() => {
-              this.getWaterLevel();
-            }, 5000);
+            this.getWaterLevel();
 
-            setInterval(() => {
-              this.getWaterLevel();
-            }, 60000);
+            this.setupEvent();
+          },
+
+          setupEvent() {
+            if (!!window.EventSource) {
+              var source = new EventSource("/events");
+
+              source.addEventListener(
+                "open",
+                function (e) {
+                  console.log("Events Connected");
+                },
+                false
+              );
+              source.addEventListener(
+                "error",
+                function (e) {
+                  if (e.target.readyState != EventSource.OPEN) {
+                    console.log("Events Disconnected");
+                  }
+                },
+                false
+              );
+
+              source.addEventListener(
+                "message",
+                function (e) {
+                  console.log("message", e.data);
+                },
+                false
+              );
+
+              source.addEventListener(
+                "new_water_level",
+                (e) => (this.waterLevel = e.data),
+                false
+              );
+            }
           },
 
           getBaseUrl() {
@@ -393,7 +426,7 @@
           },
 
           waterLevelMessage() {
-            return this.levelChecking ? "Loading..." : this.waterLevel + "%";
+            return this.waterLevel + "%";
           },
 
           async get(url) {

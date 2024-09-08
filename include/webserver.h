@@ -18,6 +18,8 @@ class WebServer
 {
 private:
   AsyncWebServer *server;
+  AsyncEventSource *events;
+
   Setting settings;
   bool rebootDevice = false;
   int waterLevel = 0;
@@ -26,6 +28,7 @@ public:
   WebServer()
   {
     server = new AsyncWebServer(80);
+    events = new AsyncEventSource("/events");
   }
 
   void setup()
@@ -105,6 +108,17 @@ public:
           request->send(200, "application/json", wifiConnect.getAvailableNetworks());
           request->client()->close();
         });
+    
+    events->onConnect([](AsyncEventSourceClient *client){
+      if(client->lastId()){
+        Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+      }
+      // send event with message "hello!", id current millis
+      // and set reconnect delay to 1 second
+      client->send("hello!", NULL, millis(), 10000);
+    });
+
+    server->addHandler(events);
   }
 
   void setupSettingRoutes()
@@ -162,5 +176,20 @@ public:
 
   void setWaterLevel(int level) {
     waterLevel = level;
+
+    // Convert integer to string
+    String levelString = String(level);
+
+    // Allocate memory for the character array
+    char* levelChars = new char[levelString.length() + 1]; // +1 for null terminator
+
+    // Copy the string to the character array
+    strcpy(levelChars, levelString.c_str());
+
+    // Send the character array as an event
+    events->send(levelChars, "new_water_level", millis());
+
+    // Clean up allocated memory
+    delete[] levelChars;
   }
 };
