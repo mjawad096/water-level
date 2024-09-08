@@ -11,7 +11,7 @@ private:
     const double speedOfSound = 0.034;
 
 public:
-    WaterLevel()
+    void setup()
     {
         pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
         pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
@@ -38,6 +38,7 @@ public:
         for (int i = 0; i < 3; i++)
         {
             distances[i] = readDistance();
+            Serial.print("Distance: ");
             Serial.println(distances[i]);
             delay(1000);
 

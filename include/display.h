@@ -17,12 +17,20 @@ private:
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
     {
+    }
+
+    void setup()
+    {
         if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
         {
             // Address 0x3D for 128x64
             Serial.println(F("SSD1306 allocation failed"));
 
             dispalyInitialized = false;
+        }
+        else
+        {
+            dispalyInitialized = true;
         }
 
         if (dispalyInitialized)
@@ -40,6 +48,22 @@ public:
             return;
         }
 
+        if (level < 0)
+        {
+            level = 0;
+        }
+        else if (level > 100)
+        {
+            level = 100;
+        }
+
+        int levelStartCursor = 15;
+
+        if (level == 100)
+        {
+            levelStartCursor = 5;
+        }
+
         display.clearDisplay();
 
         display.setTextSize(1);
@@ -47,7 +71,7 @@ public:
         display.setCursor(0, 0);
         display.println("Water Level in Tank");
         display.println("-------------------");
-        display.setCursor(28, 27);
+        display.setCursor(levelStartCursor, 27);
         display.setTextSize(5);
         display.print(level);
         display.print('%');

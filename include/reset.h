@@ -11,10 +11,12 @@ private:
   const int RESET_PIN = 4;
 
 public:
-  Reset()
+  void setup()
   {
     pinMode(RESET_PIN, INPUT_PULLUP);
     lastResetPressTime = millis();
+
+    settings.setup();
   }
 
   void checkForReset()
@@ -35,7 +37,7 @@ public:
     settings.reset();
 
     lastResetPressTime = millis();
-    log_i("Device Reset");
+    Serial.println("Device Reset");
 
     ESP.restart();
   }

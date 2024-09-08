@@ -12,7 +12,7 @@ private:
     esp_now_peer_info_t peerInfo;
 
 public:
-    EspNow()
+    void setup()
     {
         WiFi.mode(WIFI_STA);
 
