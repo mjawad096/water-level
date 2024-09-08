@@ -3,7 +3,7 @@
 
 #pragma once
 
-class ResetDevice
+class Reset
 {
 private:
   Setting settings;
@@ -11,7 +11,7 @@ private:
   const int RESET_PIN = 4;
 
 public:
-  void setupRest()
+  Reset()
   {
     pinMode(RESET_PIN, INPUT_PULLUP);
     lastResetPressTime = millis();

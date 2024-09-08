@@ -11,7 +11,7 @@ private:
     const double speedOfSound = 0.034;
 
 public:
-    void setUpLevelChecker()
+    WaterLevel()
     {
         pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
         pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
