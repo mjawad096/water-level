@@ -13,9 +13,6 @@ public:
     String apSSID = "";
     String apPassword = "";
 
-    String wifiSSID = "";
-    String wifiPassword = "";
-
     long durationForPing = 5; // seconds
     long topEndFromDevice = 0;
     long bottomEndFromDevice = 250;
@@ -36,9 +33,6 @@ public:
     {
         apSSID = obj["apSSID"].as<String>();
         apPassword = obj["apPassword"].as<String>();
-
-        wifiSSID = obj["wifiSSID"].as<String>();
-        wifiPassword = obj["wifiPassword"].as<String>();
 
         durationForPing = obj["durationForPing"].as<long>();
         topEndFromDevice = obj["topEndFromDevice"].as<long>();
@@ -65,9 +59,6 @@ public:
         apSSID = preferences.getString("apSSID", "");
         apPassword = preferences.getString("apPassword", "");
 
-        wifiSSID = preferences.getString("wifiSSID", "");
-        wifiPassword = preferences.getString("wifiPassword", "");
-
         durationForPing = preferences.getLong("durationForPing", 5);
         topEndFromDevice = preferences.getLong("topEndFromDevice", 0);
         bottomEndFromDevice = preferences.getLong("bottomEndFromDevice", 250);
@@ -88,9 +79,6 @@ public:
         preferences.putString("apSSID", apSSID);
         preferences.putString("apPassword", apPassword);
 
-        preferences.putString("wifiSSID", wifiSSID);
-        preferences.putString("wifiPassword", wifiPassword);
-
         preferences.putLong("durationForPing", durationForPing);
         preferences.putLong("topEndFromDevice", topEndFromDevice);
         preferences.putLong("bottomEndFromDevice", bottomEndFromDevice);
@@ -108,9 +96,6 @@ public:
     {
         apSSID = "";
         apPassword = "";
-
-        wifiSSID = "";
-        wifiPassword = "";
 
         durationForPing = 5;
         topEndFromDevice = 0;
@@ -133,9 +118,6 @@ public:
         doc["apSSID"] = apSSID;
         doc["apPassword"] = apPassword;
 
-        doc["wifiSSID"] = wifiSSID;
-        doc["wifiPassword"] = wifiPassword;
-
         doc["durationForPing"] = durationForPing;
         doc["topEndFromDevice"] = topEndFromDevice;
         doc["bottomEndFromDevice"] = bottomEndFromDevice;
@@ -153,18 +135,6 @@ public:
 
     bool validate()
     {
-        if (wifiPassword.length() <= 1 || wifiSSID.length() <= 1)
-        {
-            lastError = "Wifi SSID and password are required";
-            return false;
-        }
-
-        if (apSSID.length() <= 1 || apPassword.length() <= 1)
-        {
-            lastError = "AP SSID and password are required";
-            return false;
-        }
-
         return true;
     }
 };

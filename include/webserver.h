@@ -71,7 +71,7 @@ public:
         });
 
     server->on(
-        "/",
+        "/water-level",
         [this](AsyncWebServerRequest *request)
         {
           JsonDocument doc;
@@ -91,24 +91,6 @@ public:
           rebootDevice = true;
         });
 
-    server->on(
-        "/networks/scan",
-        [this](AsyncWebServerRequest *request)
-        {
-          WifiConnect wifiConnect;
-          request->send(200, "application/json", wifiConnect.getAvailableNetworks(true));
-          request->client()->close();
-        });
-
-    server->on(
-        "/networks",
-        [this](AsyncWebServerRequest *request)
-        {
-          WifiConnect wifiConnect;
-          request->send(200, "application/json", wifiConnect.getAvailableNetworks());
-          request->client()->close();
-        });
-    
     events->onConnect([](AsyncEventSourceClient *client){
       if(client->lastId()){
         Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
@@ -156,7 +138,7 @@ public:
 
   void setupAdminPanelRoutes()
   {
-    server->on("/admin", HTTP_GET, [](AsyncWebServerRequest *request)
+    server->on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(LittleFS, "/index.html", "text/html"); });
 
     server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request)

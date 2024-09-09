@@ -49,63 +49,7 @@
             <h2 class="text-2xl font-semibold mb-6 text-center">
               Connect Settings
             </h2>
-            <form x-show="true || connected">
-              <div class="mb-4">
-                <div class="">
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    WIFI SSID
-                    <select
-                      x-model="settings_form.wifi_ssid"
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      autofocus="autofocus"
-                    >
-                      <template
-                        x-if="scanningNetwork && availableNetworks.length <= 0"
-                      >
-                        <option value="" selected readonly>Scanning...</option>
-                      </template>
-                      <template
-                        x-if="!scanningNetwork && availableNetworks.length <= 0"
-                      >
-                        <option value="" selected readonly>
-                          No network Available
-                        </option>
-                      </template>
-
-                      <template x-if="availableNetworks.length >= 0">
-                        <option value="" disabled>Select Network</option>
-                      </template>
-                      <template x-for="network in availableNetworks">
-                        <option
-                          :value="network.ssid"
-                          :selected="settings_form.wifi_ssid == network.ssid"
-                        >
-                          <span x-text="network.ssid"></span> |
-                          <span x-text="network.rssi"></span> |
-                          <span x-text="network.encryption"></span>
-                        </option>
-                      </template>
-                    </select>
-                  </label>
-                </div>
-              </div>
-              <div class="mb-4">
-                <div class="">
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    WIFI Password
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="text"
-                      x-model="settings_form.wifi_password"
-                      autofocus="autofocus"
-                    />
-                  </label>
-                </div>
-              </div>
+            <form x-show="connected">
               <div class="mb-4">
                 <div class="">
                   <label
@@ -129,12 +73,18 @@
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                     for="name"
                   >
-                    AP Password
+                    AP Password (
+                    <a
+                      href="#"
+                      @click.prevent="showApPass = !showApPass"
+                      x-text="showApPass ? 'Hide' : 'Show'"
+                    ></a>
+                    )
                   </label>
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                     id="name"
-                    type="text"
+                    :type="showApPass ? 'text' : 'password'"
                     x-model="settings_form.ap_password"
                     autofocus="autofocus"
                   />
@@ -151,7 +101,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.duration_for_ping"
+                      x-model.number="settings_form.duration_for_ping"
                       step="1"
                       placeholder="Enter duration for ping"
                     />
@@ -169,7 +119,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.top_end_from_device"
+                      x-model.number="settings_form.top_end_from_device"
                       step="1"
                       placeholder="Enter top end from device"
                     />
@@ -187,7 +137,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.bottom_end_from_device"
+                      x-model.number="settings_form.bottom_end_from_device"
                       step="1"
                       placeholder="Enter bottom end from device"
                     />
@@ -205,7 +155,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.delay_start_switch"
+                      x-model.number="settings_form.delay_start_switch"
                       step="1"
                       placeholder="Enter delay start switch"
                     />
@@ -223,7 +173,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.delay_stop_switch"
+                      x-model.number="settings_form.delay_stop_switch"
                       step="1"
                       placeholder="Enter delay stop switch"
                     />
@@ -241,7 +191,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.full_threshold"
+                      x-model.number="settings_form.full_threshold"
                       step="1"
                       placeholder="Enter full threshold"
                     />
@@ -259,7 +209,7 @@
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
-                      x-model="settings_form.empty_threshold"
+                      x-model.number="settings_form.empty_threshold"
                       step="1"
                       placeholder="Enter empty threshold"
                     />
@@ -276,9 +226,9 @@
                       type="checkbox"
                       x-model="settings_form.auto_off_on_full"
                     />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300"
-                      >Auto Off on Full</span
-                    >
+                    <span class="ml-2 text-gray-700 dark:text-gray-300">
+                      &nbsp;Auto Off on Full
+                    </span>
                   </label>
                 </div>
               </div>
@@ -292,9 +242,9 @@
                       type="checkbox"
                       x-model="settings_form.auto_on_on_empty"
                     />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300"
-                      >Auto On on Empty</span
-                    >
+                    <span class="ml-2 text-gray-700 dark:text-gray-300">
+                      &nbsp;Auto On on Empty
+                    </span>
                   </label>
                 </div>
               </div>
@@ -329,7 +279,6 @@
                 type="submit"
                 class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
                 @click="getWaterLevel"
-                x-bind:disabled="levelChecking"
               >
                 Refresh!
               </button>
@@ -344,10 +293,9 @@
         Alpine.data("mainComponent", () => ({
           endpoint: "http://192.168.4.1",
 
-          waterLevel: 0,
+          showApPass: false,
 
-          availableNetworks: [],
-          scanningNetwork: false,
+          waterLevel: 0,
 
           settings_form: {
             ap_ssid: "",
@@ -366,24 +314,24 @@
           },
 
           connected: false,
-          loading: false,
-          levelChecking: false,
+          loading: true,
 
           init() {
-            this.endpoint = this.getBaseUrl();
-
-            this.getWaterLevel();
-
             this.setupEvent();
           },
 
           setupEvent() {
             if (!!window.EventSource) {
-              var source = new EventSource("/events");
+              var source = new EventSource(`${this.endpoint}/events`);
 
               source.addEventListener(
                 "open",
-                function (e) {
+                (e) => {
+                  this.connected = true;
+                  this.loading = false;
+
+                  this.loadSettings();
+
                   console.log("Events Connected");
                 },
                 false
@@ -411,12 +359,13 @@
                 (e) => (this.waterLevel = e.data),
                 false
               );
-            }
-          },
 
-          getBaseUrl() {
-            const { protocol, hostname, port } = window.location;
-            return `${protocol}//${hostname}${port ? `:${port}` : ""}`;
+              window.onbeforeunload = function () {
+                source.close();
+              };
+
+              source.re;
+            }
           },
 
           offset() {
@@ -478,63 +427,6 @@
                 statusText: "Network error",
                 data: null,
               };
-            }
-          },
-
-          async getWaterLevel() {
-            this.levelChecking = true;
-            let response = await this.get(`${this.endpoint}`);
-
-            if (response.status != 200) {
-              this.connected = false;
-              this.levelChecking = false;
-              return;
-            }
-
-            if (this.connected == false) {
-              this.loadSettings();
-              this.scanNetworks(true);
-            }
-
-            this.waterLevel = response.data.level;
-
-            this.connected = true;
-
-            this.levelChecking = false;
-          },
-
-          async scanNetworks(scan = false) {
-            this.scanningNetwork = true;
-
-            let url = !scan
-              ? `${this.endpoint}/networks`
-              : `${this.endpoint}/networks/scan`;
-
-            let response = await this.post(url);
-
-            if (response.status !== 200) {
-              this.availableNetworks = [];
-              this.scanningNetwork = false;
-              return;
-            }
-
-            if (["scanning", "scan_failed"].includes(response.data.status)) {
-              console.log("scanningg...");
-              this.availableNetworks = [];
-              this.scanningNetwork = response.data.status != "scan_failed";
-
-              // If scanning then try to fetch results untill results are found
-              setTimeout(() => {
-                this.scanNetworks();
-              }, 5000);
-
-              return;
-            }
-
-            if (response.data.status == "success") {
-              this.availableNetworks = response.data.networks;
-
-              this.scanningNetwork = false;
             }
           },
 
