@@ -139,7 +139,7 @@ svg {
 }
 
 .circle-bg {
-    stroke: #e5e7eb;
+    stroke: #374151;
     stroke-width: 10;
     fill: none;
 }
@@ -148,7 +148,6 @@ svg {
     stroke: #34d399;
     stroke-width: 10;
     stroke-dasharray: 377;
-    /* Circumference of the circle */
     fill: none;
     transition: stroke-dashoffset 0.35s;
 }
@@ -160,6 +159,15 @@ svg {
     transform: translate(-50%, -50%);
     font-size: 1.3rem;
     font-weight: bold;
-    color: #ffffff;
-    /* Adjust color as needed */
+    color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+    .circle-bg {
+        stroke: #e5e7eb;
+    }
+
+    .progress-text {
+        color: #ffffff;
+    }
 }
