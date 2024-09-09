@@ -60,10 +60,10 @@ public:
         apPassword = preferences.getString("apPassword", "");
 
         durationForPing = preferences.getLong("durationForPing", 5);
-        topEndFromDevice = preferences.getLong("topEndFromDevice", 0);
-        bottomEndFromDevice = preferences.getLong("bottomEndFromDevice", 250);
-        delayStartSwitch = preferences.getLong("delayStartSwitch", 10);
-        delayStopSwitch = preferences.getLong("delayStopSwitch", 10);
+        topEndFromDevice = preferences.getLong("topFromDevice", 0);
+        bottomEndFromDevice = preferences.getLong("btmFromDevice", 250);
+        delayStartSwitch = preferences.getLong("delayStartSwtch", 10);
+        delayStopSwitch = preferences.getLong("delayStopSwtch", 10);
         fullThreshold = preferences.getLong("fullThreshold", 99);
         emptyThreshold = preferences.getLong("emptyThreshold", 5);
         autoOffOnFull = preferences.getBool("autoOffOnFull", false);
@@ -80,10 +80,10 @@ public:
         preferences.putString("apPassword", apPassword);
 
         preferences.putLong("durationForPing", durationForPing);
-        preferences.putLong("topEndFromDevice", topEndFromDevice);
-        preferences.putLong("bottomEndFromDevice", bottomEndFromDevice);
-        preferences.putLong("delayStartSwitch", delayStartSwitch);
-        preferences.putLong("delayStopSwitch", delayStopSwitch);
+        preferences.putLong("topFromDevice", topEndFromDevice);
+        preferences.putLong("btmFromDevice", bottomEndFromDevice);
+        preferences.putLong("delayStartSwtch", delayStartSwitch);
+        preferences.putLong("delayStopSwtch", delayStopSwitch);
         preferences.putLong("fullThreshold", fullThreshold);
         preferences.putLong("emptyThreshold", emptyThreshold);
         preferences.putBool("autoOffOnFull", autoOffOnFull);

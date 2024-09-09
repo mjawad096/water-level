@@ -6,15 +6,18 @@
 class WaterLevel
 {
 private:
+    Setting settings;
     const int echoPin = 18;
     const int trigPin = 19;
-    const double speedOfSound = 0.034;
+    const double speedOfSound = 0.0343;
 
 public:
     void setup()
     {
         pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
         pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
+
+        settings.setup();
     }
 
     double readDistance()
@@ -27,7 +30,7 @@ public:
 
         long duration = pulseIn(echoPin, HIGH);
 
-        return duration * speedOfSound / 2;
+        return duration * speedOfSound / 2; // cm
     }
 
     double getBestDistance()
@@ -54,8 +57,6 @@ public:
     int getLevel()
     {
         double deviceToWaterDistance = getBestDistance();
-
-        Setting settings;
 
         double topEndDistanceFromDevice = settings.topEndFromDevice;
         double bottomEndDistanceFromDevice = settings.bottomEndFromDevice;
