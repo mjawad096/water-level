@@ -7,17 +7,17 @@ class Switch
 {
 private:
     RCSwitch mySwitch;
-    Setting settings;
+    Setting *settings;
     int rfSwitchPin = GPIO_NUM_27;
     long lastSentOnTime;
     long lastSentOffTime;
 
 public:
-    void setup()
+    void setup(Setting *settings)
     {
-        mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
+        this->settings = settings;
 
-        settings.setup();
+        mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
     }
 
     void sendSwitchState(bool state)
@@ -38,17 +38,17 @@ public:
 
     void checkForOpenState(int level)
     {
-        if (!settings.autoOnOnEmpty)
+        if (!settings->autoOnOnEmpty)
         {
             return;
         }
 
-        if (level > settings.emptyThreshold)
+        if (level > settings->emptyThreshold)
         {
             return;
         }
 
-        if (millis() - lastSentOnTime < (settings.delayStartSwitch * 60 * 1000))
+        if (millis() - lastSentOnTime < (settings->delayStartSwitch * 60 * 1000))
         {
             return;
         }
@@ -58,17 +58,17 @@ public:
 
     void checkForCloseState(int level)
     {
-        if (!settings.autoOffOnFull)
+        if (!settings->autoOffOnFull)
         {
             return;
         }
 
-        if (level < settings.fullThreshold)
+        if (level < settings->fullThreshold)
         {
             return;
         }
 
-        if (millis() - lastSentOffTime < (settings.delayStopSwitch * 60 * 1000))
+        if (millis() - lastSentOffTime < (settings->delayStopSwitch * 60 * 1000))
         {
             return;
         }

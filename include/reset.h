@@ -6,17 +6,17 @@
 class Reset
 {
 private:
-  Setting settings;
+  Setting *settings;
   long lastResetPressTime;
   const int RESET_PIN = 4;
 
 public:
-  void setup()
+  void setup(Setting *settings)
   {
+    this->settings = settings;
+
     pinMode(RESET_PIN, INPUT_PULLUP);
     lastResetPressTime = millis();
-
-    settings.setup();
   }
 
   void checkForReset()
@@ -34,10 +34,9 @@ public:
       return void();
     }
 
-    settings.reset();
+    settings->reset();
 
     lastResetPressTime = millis();
-    Serial.println("Device Reset");
 
     ESP.restart();
   }

@@ -14,9 +14,9 @@ private:
     WifiConnect wifiConnect;
 
 public:
-    void setup()
+    void setup(Setting *settings)
     {
-        wifiConnect.setup();
+        wifiConnect.setup(settings);
 
         if (esp_now_init() != ESP_OK)
         {

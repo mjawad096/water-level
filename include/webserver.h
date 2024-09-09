@@ -20,8 +20,9 @@ private:
   AsyncWebServer *server;
   AsyncEventSource *events;
 
-  Setting settings;
+  Setting *settings;
   bool rebootDevice = false;
+  bool resetDevice = false;
   int waterLevel = 0;
 
 public:
@@ -31,9 +32,9 @@ public:
     events = new AsyncEventSource("/events");
   }
 
-  void setup()
+  void setup(Setting *settings)
   {
-    settings.setup();
+    this->settings = settings;
 
     if (!LittleFS.begin())
     {
@@ -91,14 +92,24 @@ public:
           rebootDevice = true;
         });
 
-    events->onConnect([](AsyncEventSourceClient *client){
+    server->on(
+        "/reset",
+        HTTP_POST,
+        [this](AsyncWebServerRequest *request)
+        {
+          request->send(200, "application/json", apiResponse("Resetting device."));
+          request->client()->close();
+          resetDevice = true;
+        });
+
+    events->onConnect([](AsyncEventSourceClient *client)
+                      {
       if(client->lastId()){
         Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
       }
       // send event with message "hello!", id current millis
       // and set reconnect delay to 1 second
-      client->send("hello!", NULL, millis(), 10000);
-    });
+      client->send("hello!", NULL, millis(), 10000); });
 
     server->addHandler(events);
   }
@@ -110,7 +121,7 @@ public:
         HTTP_GET,
         [this](AsyncWebServerRequest *request)
         {
-          request->send(200, "application/json", settings.toString());
+          request->send(200, "application/json", settings->toString());
         });
 
     AsyncCallbackJsonWebHandler *settingsHandler = new AsyncCallbackJsonWebHandler(
@@ -119,15 +130,15 @@ public:
         {
           JsonDocument doc;
           doc.set(json);
-          settings.fill(doc);
+          settings->fill(doc);
 
-          if (!settings.validate())
+          if (!settings->validate())
           {
-            request->send(400, "application/json", apiResponse(settings.lastError ?: "Uknown error"));
+            request->send(400, "application/json", apiResponse(settings->lastError ?: "Uknown error"));
           }
           else
           {
-            settings.save();
+            settings->save();
             rebootDevice = true;
             request->send(200, "application/json", apiResponse("Settings saved"));
           }
@@ -151,19 +162,34 @@ public:
                { request->send(LittleFS, "/index.js", "text/javascript"); });
   }
 
-  bool rebootRequested()
+  void checkForReboot()
   {
-    return rebootDevice;
+    if (rebootDevice)
+    {
+      delay(500);
+      ESP.restart();
+    }
   }
 
-  void setWaterLevel(int level) {
+  void checkForReset()
+  {
+    if (resetDevice)
+    {
+      delay(500);
+      settings->reset();
+      rebootDevice = true;
+    }
+  }
+
+  void setWaterLevel(int level)
+  {
     waterLevel = level;
 
     // Convert integer to string
     String levelString = String(level);
 
     // Allocate memory for the character array
-    char* levelChars = new char[levelString.length() + 1]; // +1 for null terminator
+    char *levelChars = new char[levelString.length() + 1]; // +1 for null terminator
 
     // Copy the string to the character array
     strcpy(levelChars, levelString.c_str());

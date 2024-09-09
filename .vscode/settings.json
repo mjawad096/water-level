@@ -4,5 +4,10 @@
     "editor.formatOnSave": true,
     "[css]": {
         "editor.defaultFormatter": "vscode.css-language-features"
+    },
+    "files.associations": {
+        "*.embeddedhtml": "html",
+        "atomic": "cpp",
+        "new": "cpp"
     }
 }

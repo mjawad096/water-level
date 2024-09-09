@@ -9,10 +9,12 @@
 Display display;
 EspNow espNow;
 Reset reset;
-Setting settings;
+Setting *settings;
 Switch rfSwitch;
 WaterLevel waterLevel;
 WebServer *webServer = new WebServer();
+
+int level = 0;
 
 void setup()
 {
@@ -20,32 +22,42 @@ void setup()
 
     Serial.begin(115200);
 
-    espNow.setup();
-    webServer->setup();
-    reset.setup();
-    settings.setup();
-    rfSwitch.setup();
-    waterLevel.setup();
+    settings = new Setting();
+
+    espNow.setup(settings);
+    webServer->setup(settings);
+    reset.setup(settings);
+    rfSwitch.setup(settings);
+    waterLevel.setup(settings);
 
     display.setup();
 }
 
 void loop()
 {
-    // Serial.println(settings.toString());
+    // Serial.println(settings->toString());
 
-    // Check and reboot if requested
-    if (webServer->rebootRequested())
-    {
-        delay(500);
-        ESP.restart();
-    }
+    webServer->checkForReset();
+    webServer->checkForReboot();
 
     reset.checkForReset();
 
-    int level = waterLevel.getLevel();
+    processWaterLevel(waterLevel.getLevel());
 
-    webServer->setWaterLevel(level);
+    delay(settings->durationForPing * 1000);
+}
+
+void processWaterLevel(int newLevel)
+{
+    // Sent always for the events
+    webServer->setWaterLevel(newLevel);
+
+    if (newLevel == level)
+    {
+        return;
+    }
+
+    level = newLevel;
 
     display.displayLevel(level);
     espNow.sendWaterLevel(level);
@@ -55,6 +67,4 @@ void loop()
 
     Serial.print("Level: ");
     Serial.println(level);
-
-    delay(settings.durationForPing * 1000);
 }

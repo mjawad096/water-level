@@ -27,6 +27,24 @@ public:
 
     Setting()
     {
+        preferences.begin("settings", false);
+
+        Serial.println("Pref Settings loaded");
+
+        apSSID = preferences.getString("apSSID", "");
+        apPassword = preferences.getString("apPassword", "");
+
+        durationForPing = preferences.getLong("durationForPing", 5);
+        topEndFromDevice = preferences.getLong("topFromDevice", 0);
+        bottomEndFromDevice = preferences.getLong("btmFromDevice", 250);
+        delayStartSwitch = preferences.getLong("delayStartSwtch", 10);
+        delayStopSwitch = preferences.getLong("delayStopSwtch", 10);
+        fullThreshold = preferences.getLong("fullThreshold", 99);
+        emptyThreshold = preferences.getLong("emptyThreshold", 5);
+        autoOffOnFull = preferences.getBool("autoOffOnFull", false);
+        autoOnOnEmpty = preferences.getBool("autoOnOnEmpty", false);
+
+        preferences.end();
     }
 
     void fill(const JsonDocument &obj)
@@ -48,28 +66,6 @@ public:
         {
             durationForPing = 5;
         }
-    }
-
-    void setup()
-    {
-        preferences.begin("settings", false);
-
-        Serial.println("Pref Settings loaded");
-
-        apSSID = preferences.getString("apSSID", "");
-        apPassword = preferences.getString("apPassword", "");
-
-        durationForPing = preferences.getLong("durationForPing", 5);
-        topEndFromDevice = preferences.getLong("topFromDevice", 0);
-        bottomEndFromDevice = preferences.getLong("btmFromDevice", 250);
-        delayStartSwitch = preferences.getLong("delayStartSwtch", 10);
-        delayStopSwitch = preferences.getLong("delayStopSwtch", 10);
-        fullThreshold = preferences.getLong("fullThreshold", 99);
-        emptyThreshold = preferences.getLong("emptyThreshold", 5);
-        autoOffOnFull = preferences.getBool("autoOffOnFull", false);
-        autoOnOnEmpty = preferences.getBool("autoOnOnEmpty", false);
-
-        preferences.end();
     }
 
     void save()
@@ -108,6 +104,8 @@ public:
         autoOnOnEmpty = false;
 
         save();
+
+        Serial.println("Device Reset");
     }
 
     String toString()

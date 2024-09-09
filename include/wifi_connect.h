@@ -6,18 +6,18 @@
 class WifiConnect
 {
 private:
-    Setting settings;
+    Setting *settings;
 
 public:
     WifiConnect()
     {
     }
 
-    void setup()
+    void setup(Setting *settings)
     {
-        WiFi.mode(WIFI_AP_STA);
+        this->settings = settings;
 
-        settings.setup();
+        WiFi.mode(WIFI_AP_STA);
 
         setupAccessPoint();
     }
@@ -27,14 +27,14 @@ public:
         String apSSID = getWifiAPName();
         String apPassword = "12345678";
 
-        if (settings.apSSID.length() > 4)
+        if (settings->apSSID.length() > 4)
         {
-            apSSID = getWifiAPName() + String("_") + settings.apSSID;
+            apSSID = getWifiAPName() + String("_") + settings->apSSID;
         }
 
-        if (settings.apPassword.length() > 4)
+        if (settings->apPassword.length() > 4)
         {
-            apPassword = settings.apPassword;
+            apPassword = settings->apPassword;
         }
 
         WiFi.softAP(apSSID, apPassword);
@@ -54,6 +54,6 @@ public:
         char hexString[17];
         snprintf(hexString, sizeof(hexString), "%04X%08X", (uint16_t)(number >> 32), (uint32_t)number);
 
-        return String("STAP_") + String(hexString);
+        return String("WL_") + String(hexString);
     }
 };
