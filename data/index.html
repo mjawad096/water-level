@@ -97,7 +97,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Duration for Ping
+                    Duration for Ping (Seconds)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -115,7 +115,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Top End from Device
+                    Top End from Device (cm)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -133,7 +133,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Bottom End from Device
+                    Bottom End from Device (cm)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -151,7 +151,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Delay Start Switch
+                    Delay Start Switch (Seconds)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -169,7 +169,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Delay Stop Switch
+                    Delay Stop Switch (Seconds)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -187,7 +187,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Full Threshold
+                    Full Threshold (1% - 100%)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -205,7 +205,7 @@
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                   >
-                    Empty Threshold
+                    Empty Threshold (1% - 100%)
                     <input
                       class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                       type="number"
@@ -358,8 +358,6 @@
               window.onbeforeunload = function () {
                 source.close();
               };
-
-              source.re;
             }
           },
 
@@ -471,7 +469,7 @@
 
             this.loading = false;
             if (response.status == 200) {
-              return alert("Settings saved");
+              alert("Settings saved");
             }
           },
 

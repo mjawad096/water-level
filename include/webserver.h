@@ -97,7 +97,7 @@ public:
       }
       // send event with message "hello!", id current millis
       // and set reconnect delay to 1 second
-      client->send("hello!", NULL, millis(), 1000);
+      client->send("hello!", NULL, millis(), 10000);
     });
 
     server->addHandler(events);
