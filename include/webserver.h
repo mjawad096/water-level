@@ -12,19 +12,21 @@
 #include "wifi_connect.h"
 #include "setting.h"
 #include "waterlevel.h"
+#include "switch.h"
 
 #pragma once
 
 class WebServer
 {
 private:
-  AsyncWebServer *server;
-  AsyncEventSource *events;
-
-  Setting *settings;
   bool rebootDevice = false;
   bool resetDevice = false;
   int waterLevel = 0;
+
+  AsyncWebServer *server;
+  AsyncEventSource *events;
+  Setting *settings;
+  Switch *rfSwitch;
 
 public:
   WebServer()
@@ -33,9 +35,10 @@ public:
     events = new AsyncEventSource("/events");
   }
 
-  void setup(Setting *settings)
+  void setup(Setting *settings, Switch *rfSwitch)
   {
     this->settings = settings;
+    this->rfSwitch = rfSwitch;
 
     if (!LittleFS.begin())
     {
@@ -50,7 +53,8 @@ public:
 
     setDefaultRoutes();
     setupSettingRoutes();
-    setupAdminPanelRoutes();
+    setupStaticRoutes();
+    setupSwitchRoutes();
 
     server->begin();
 
@@ -148,7 +152,32 @@ public:
     server->addHandler(settingsHandler);
   }
 
-  void setupAdminPanelRoutes()
+  void setupSwitchRoutes()
+  {
+    server->on(
+        "/switch-on",
+        HTTP_POST,
+        [this](AsyncWebServerRequest *request)
+        {
+          request->send(200, "application/json", apiResponse("Switching on."));
+          request->client()->close();
+
+          rfSwitch->sendSwitchState(true, true);
+        });
+
+    server->on(
+        "/switch-off",
+        HTTP_POST,
+        [this](AsyncWebServerRequest *request)
+        {
+          request->send(200, "application/json", apiResponse("Switching off."));
+          request->client()->close();
+
+          rfSwitch->sendSwitchState(false, true);
+        });
+  }
+
+  void setupStaticRoutes()
   {
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                { request->send(LittleFS, "/index.html", "text/html"); });

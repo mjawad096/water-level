@@ -9,10 +9,11 @@
 Display display;
 EspNow espNow;
 Reset reset;
-Setting *settings;
-Switch rfSwitch;
 WaterLevel waterLevel;
-WebServer *webServer = new WebServer();
+
+Setting *settings;
+Switch *rfSwitch;
+WebServer *webServer;
 
 int level = 0;
 
@@ -23,14 +24,16 @@ void setup()
     Serial.begin(115200);
 
     settings = new Setting();
+    rfSwitch = new Switch();
+    webServer = new WebServer();
 
     espNow.setup(settings);
-    webServer->setup(settings);
     reset.setup(settings);
-    rfSwitch.setup(settings);
     waterLevel.setup(settings);
-
     display.setup();
+
+    rfSwitch->setup(settings);
+    webServer->setup(settings, rfSwitch);
 }
 
 void loop()
@@ -57,8 +60,8 @@ void processWaterLevel(WaterLevelData levelData)
 
     display.displayLevel(level);
 
-    rfSwitch.checkForOpenState(level);
-    rfSwitch.checkForCloseState(level);
+    rfSwitch->checkForOpenState(level);
+    rfSwitch->checkForCloseState(level);
 
     Serial.print("Level: ");
     Serial.print(levelData.level);

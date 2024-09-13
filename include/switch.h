@@ -20,9 +20,16 @@ public:
         mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
     }
 
-    void sendSwitchState(bool state)
+    void sendSwitchState(bool state, bool manual = false)
     {
-        int data = state ? 15859240 : 15859236;
+        int data = state ? 15859240 : 5557608;
+
+        mySwitch.send(data, 24);
+
+        if (manual)
+        {
+            return;
+        }
 
         if (state)
         {
@@ -32,8 +39,6 @@ public:
         {
             lastSentOffTime = millis();
         }
-
-        mySwitch.send(data, 24);
     }
 
     void checkForOpenState(int level)

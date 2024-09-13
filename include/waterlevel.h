@@ -57,21 +57,21 @@ public:
 
     double getBestDistance()
     {
-        double distances[3];
+        double distance;
         double maxDistance = 0;
 
         for (int i = 0; i < 3; i++)
         {
-            distances[i] = readDistance();
+            distance = readDistance();
 
             Serial.print("Distance: ");
-            Serial.println(distances[i]);
+            Serial.println(distance);
 
             delay(1000);
 
-            if (distances[i] > maxDistance)
+            if (distance > maxDistance)
             {
-                maxDistance = distances[i];
+                maxDistance = distance;
             }
         }
 
