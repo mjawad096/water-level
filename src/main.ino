@@ -47,24 +47,21 @@ void loop()
     delay(settings->durationForPing * 1000);
 }
 
-void processWaterLevel(int newLevel)
+void processWaterLevel(WaterLevelData levelData)
 {
-    // Sent always for the events
-    webServer->setWaterLevel(newLevel);
 
-    if (newLevel == level)
-    {
-        return;
-    }
+    webServer->setWaterLevel(levelData);
+    espNow.sendWaterLevel(levelData);
 
-    level = newLevel;
+    level = levelData.level;
 
     display.displayLevel(level);
-    espNow.sendWaterLevel(level);
 
     rfSwitch.checkForOpenState(level);
     rfSwitch.checkForCloseState(level);
 
     Serial.print("Level: ");
-    Serial.println(level);
+    Serial.print(levelData.level);
+    Serial.print(", Distance: ");
+    Serial.println(levelData.distance);
 }

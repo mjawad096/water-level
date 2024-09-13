@@ -11,6 +11,7 @@
 #include "HTTPUpdate.h"
 #include "wifi_connect.h"
 #include "setting.h"
+#include "waterlevel.h"
 
 #pragma once
 
@@ -181,23 +182,13 @@ public:
     }
   }
 
-  void setWaterLevel(int level)
+  void setWaterLevel(WaterLevelData levelData)
   {
-    waterLevel = level;
+    char *dataChars = levelData.formatForSSEvent();
 
-    // Convert integer to string
-    String levelString = String(level);
-
-    // Allocate memory for the character array
-    char *levelChars = new char[levelString.length() + 1]; // +1 for null terminator
-
-    // Copy the string to the character array
-    strcpy(levelChars, levelString.c_str());
-
-    // Send the character array as an event
-    events->send(levelChars, "new_water_level", millis());
+    events->send(dataChars, "water_level_data", millis());
 
     // Clean up allocated memory
-    delete[] levelChars;
+    delete[] dataChars;
   }
 };

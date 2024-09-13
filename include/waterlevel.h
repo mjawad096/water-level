@@ -3,6 +3,28 @@
 
 #pragma once
 
+struct WaterLevelData
+{
+    int level;
+    double distance;
+
+    WaterLevelData(int l, double d) : level(l), distance(d) {}
+
+    WaterLevelData(double l, double d) : level((int)round(l)), distance(d) {}
+
+    char *formatForSSEvent()
+    {
+        int bufferSize = 50;
+
+        char *buffer = new char[bufferSize];
+
+        // Format the data into the allocated buffer
+        snprintf(buffer, bufferSize, "{\"level\": %d, \"distance\": %.2f}\n\n", level, distance);
+
+        return buffer;
+    }
+};
+
 class WaterLevel
 {
 private:
@@ -41,8 +63,10 @@ public:
         for (int i = 0; i < 3; i++)
         {
             distances[i] = readDistance();
+
             Serial.print("Distance: ");
             Serial.println(distances[i]);
+
             delay(1000);
 
             if (distances[i] > maxDistance)
@@ -54,7 +78,7 @@ public:
         return maxDistance;
     }
 
-    int getLevel()
+    WaterLevelData getLevel()
     {
         double deviceToWaterDistance = getBestDistance();
 
@@ -78,6 +102,6 @@ public:
             level = 100;
         }
 
-        return (int)round(level);
+        return WaterLevelData(level, deviceToWaterDistance);
     }
 };

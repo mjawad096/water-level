@@ -43,6 +43,11 @@
                   </div>
                 </div>
               </div>
+              <div class="box">
+                <div>
+                  Distance: <span x-text="deviceToWaterDistance"></span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="settings">
@@ -289,6 +294,7 @@
           showApPass: false,
 
           waterLevel: 0,
+          deviceToWaterDistance: 0,
 
           settings_form: {
             ap_ssid: "",
@@ -350,8 +356,13 @@
               );
 
               source.addEventListener(
-                "new_water_level",
-                (e) => (this.waterLevel = e.data),
+                "water_level_data",
+                (e) => {
+                  let data = JSON.parse(e.data);
+
+                  this.waterLevel = data.level;
+                  this.deviceToWaterDistance = data.distance;
+                },
                 false
               );
 

@@ -1,6 +1,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <wifi_connect.h>
+#include "waterlevel.h"
 
 #pragma once
 
@@ -47,9 +48,9 @@ public:
         //   }
     }
 
-    void sendWaterLevel(int level)
+    void sendWaterLevel(WaterLevelData levelData)
     {
-        esp_err_t result = esp_now_send(0, (uint8_t *)&level, sizeof(level));
+        esp_err_t result = esp_now_send(0, (uint8_t *)&levelData.level, sizeof(levelData.level));
 
         if (result == ESP_OK)
         {
