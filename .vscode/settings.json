@@ -9,6 +9,7 @@
         "*.embeddedhtml": "html",
         "atomic": "cpp",
         "new": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iterator": "cpp"
     }
 }

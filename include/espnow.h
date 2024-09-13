@@ -1,7 +1,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <wifi_connect.h>
-#include "waterlevel_data.h"
+#include "waterlevel.h"
 
 #pragma once
 
@@ -15,13 +15,9 @@ private:
     WifiConnect wifiConnect;
 
 public:
-    static WaterLevelData *waterLevelData;
-
     void setup(Setting *settings)
     {
         wifiConnect.setup(settings);
-
-        EspNow::waterLevelData = new WaterLevelData();
 
         if (esp_now_init() != ESP_OK)
         {
@@ -54,9 +50,9 @@ public:
         esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
     }
 
-    void sendWaterLevel()
+    void sendWaterLevel(WaterLevelData *waterLevelData)
     {
-        esp_err_t result = esp_now_send(0, (uint8_t *)&EspNow::waterLevelData->level, sizeof(EspNow::waterLevelData->level));
+        esp_err_t result = esp_now_send(0, (uint8_t *)&waterLevelData->level, sizeof(waterLevelData->level));
 
         if (result == ESP_OK)
         {
@@ -89,7 +85,7 @@ public:
     {
         try
         {
-            memcpy(EspNow::waterLevelData, incomingData, sizeof(WaterLevelData));
+            memcpy(&WaterLevel::deviceToWaterDistance, incomingData, sizeof(WaterLevel::deviceToWaterDistance));
         }
         catch (const std::exception &e)
         {
@@ -99,5 +95,3 @@ public:
         }
     }
 };
-
-WaterLevelData *EspNow::waterLevelData = nullptr;
