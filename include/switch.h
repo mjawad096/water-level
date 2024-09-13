@@ -22,7 +22,7 @@ public:
 
     void sendSwitchState(bool state, bool manual = false)
     {
-        int data = state ? 15859240 : 5557608;
+        int data = state ? 5557608 : 15859236;
 
         mySwitch.send(data, 24);
 
@@ -53,7 +53,7 @@ public:
             return;
         }
 
-        if (millis() - lastSentOnTime < (settings->delayStartSwitch * 60 * 1000))
+        if (millis() - lastSentOnTime < (settings->delayStartSwitch * 1000))
         {
             return;
         }
@@ -73,7 +73,7 @@ public:
             return;
         }
 
-        if (millis() - lastSentOffTime < (settings->delayStopSwitch * 60 * 1000))
+        if (millis() - lastSentOffTime < (settings->delayStopSwitch * 1000))
         {
             return;
         }
