@@ -1,7 +1,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <wifi_connect.h>
-#include "waterlevel.h"
+#include "waterlevel_data.h"
 
 #pragma once
 
@@ -15,9 +15,13 @@ private:
     WifiConnect wifiConnect;
 
 public:
+    static WaterLevelData *waterLevelData;
+
     void setup(Setting *settings)
     {
         wifiConnect.setup(settings);
+
+        EspNow::waterLevelData = new WaterLevelData();
 
         if (esp_now_init() != ESP_OK)
         {
@@ -46,11 +50,13 @@ public:
         //     Serial.println("Failed to add peer");
         //     return;
         //   }
+
+        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
     }
 
-    void sendWaterLevel(WaterLevelData levelData)
+    void sendWaterLevel()
     {
-        esp_err_t result = esp_now_send(0, (uint8_t *)&levelData.level, sizeof(levelData.level));
+        esp_err_t result = esp_now_send(0, (uint8_t *)&EspNow::waterLevelData->level, sizeof(EspNow::waterLevelData->level));
 
         if (result == ESP_OK)
         {
@@ -77,4 +83,21 @@ public:
         Serial.print(" Send status:\t");
         Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
     }
+
+    // callback when data is received
+    static void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len)
+    {
+        try
+        {
+            memcpy(EspNow::waterLevelData, incomingData, sizeof(WaterLevelData));
+        }
+        catch (const std::exception &e)
+        {
+            Serial.println("Error parsing data");
+            Serial.print("Bytes received: ");
+            Serial.println(len);
+        }
+    }
 };
+
+WaterLevelData *EspNow::waterLevelData = nullptr;

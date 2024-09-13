@@ -11,8 +11,8 @@
 #include "HTTPUpdate.h"
 #include "wifi_connect.h"
 #include "setting.h"
-#include "waterlevel.h"
 #include "switch.h"
+#include "waterlevel_data.h"
 
 #pragma once
 
@@ -211,9 +211,9 @@ public:
     }
   }
 
-  void setWaterLevel(WaterLevelData levelData)
+  void setWaterLevel(WaterLevelData *levelData)
   {
-    char *dataChars = levelData.formatForSSEvent();
+    char *dataChars = levelData->formatForSSEvent();
 
     events->send(dataChars, "water_level_data", millis());
 

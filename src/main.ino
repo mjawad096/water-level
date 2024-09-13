@@ -3,19 +3,17 @@
 #include "reset.h"
 #include "setting.h"
 #include "switch.h"
-#include "waterlevel.h"
 #include "webserver.h"
 
 Display display;
 EspNow espNow;
 Reset reset;
-WaterLevel waterLevel;
 
 Setting *settings;
 Switch *rfSwitch;
 WebServer *webServer;
 
-int level = 0;
+WaterLevelData *waterLevelData;
 
 void setup()
 {
@@ -29,11 +27,12 @@ void setup()
 
     espNow.setup(settings);
     reset.setup(settings);
-    waterLevel.setup(settings);
     display.setup();
 
     rfSwitch->setup(settings);
     webServer->setup(settings, rfSwitch);
+
+    waterLevelData = EspNow::waterLevelData;
 }
 
 void loop()
@@ -45,26 +44,24 @@ void loop()
 
     reset.checkForReset();
 
-    processWaterLevel(waterLevel.getLevel());
+    processWaterLevel();
 
-    delay(settings->durationForPing * 1000);
+    delay(5000);
 }
 
-void processWaterLevel(WaterLevelData levelData)
+void processWaterLevel()
 {
+    webServer->setWaterLevel(waterLevelData);
 
-    webServer->setWaterLevel(levelData);
-    espNow.sendWaterLevel(levelData);
+    espNow.sendWaterLevel();
 
-    level = levelData.level;
+    display.displayLevel(waterLevelData->level);
 
-    display.displayLevel(level);
-
-    rfSwitch->checkForOpenState(level);
-    rfSwitch->checkForCloseState(level);
+    rfSwitch->checkForOpenState(waterLevelData->level);
+    rfSwitch->checkForCloseState(waterLevelData->level);
 
     Serial.print("Level: ");
-    Serial.print(levelData.level);
+    Serial.print(waterLevelData->level);
     Serial.print(", Distance: ");
-    Serial.println(levelData.distance);
+    Serial.println(waterLevelData->distance);
 }
