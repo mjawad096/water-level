@@ -9,7 +9,7 @@ class EspNow
 {
 private:
     uint8_t broadcastAddress1[6] = {0x84, 0xCC, 0xA8, 0x81, 0xBD, 0x04};
-    // uint8_t broadcastAddress2[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    uint8_t broadcastAddress2[6] = {0xEC, 0xFA, 0xBC, 0x96, 0x5F, 0xAA};
 
     esp_now_peer_info_t peerInfo;
     WifiConnect wifiConnect;
@@ -40,12 +40,13 @@ public:
             return;
         }
 
-        //   // register second peer
-        //   memcpy(peerInfo.peer_addr, broadcastAddress2, 6);
-        //   if (esp_now_add_peer(&peerInfo) != ESP_OK){
-        //     Serial.println("Failed to add peer");
-        //     return;
-        //   }
+        // register second peer
+        memcpy(peerInfo.peer_addr, broadcastAddress2, 6);
+        if (esp_now_add_peer(&peerInfo) != ESP_OK)
+        {
+            Serial.println("Failed to add peer");
+            return;
+        }
 
         esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
     }
