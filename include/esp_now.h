@@ -11,7 +11,7 @@ private:
 
 public:
     static int waterLevel;
-    static long lastUpdatedMillis;
+    static unsigned long lastUpdatedMillis;
 
     void setup()
     {
@@ -48,10 +48,10 @@ public:
 
     bool isLastUpdatedMoreThan(int minutes)
     {
-        return (millis() - lastUpdatedMillis) > (minutes * 60 * 1000);
+        return (millis() - lastUpdatedMillis) > (unsigned long)(minutes * 60 * 1000);
     }
 };
 
 Display EspNow::display;
 int EspNow::waterLevel = 0;
-long EspNow::lastUpdatedMillis = 0;
+unsigned long EspNow::lastUpdatedMillis = 0;
