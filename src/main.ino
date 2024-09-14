@@ -17,15 +17,20 @@ void setup()
 
 void loop()
 {
+    digitalWrite(LED_BUILTIN, HIGH);
+
     // if last updated is 5 min ago
     if (espNow.isLastUpdatedMoreThan(5))
     {
-        digitalWrite(LED_BUILTIN, HIGH);
         digitalWrite(buzzerPin, HIGH);
     }
     else
     {
+
+        delay(500);
         digitalWrite(LED_BUILTIN, LOW);
         digitalWrite(buzzerPin, LOW);
     }
+
+    delay(500);
 }
