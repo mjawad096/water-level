@@ -1,22 +1,16 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
-#include <display.h>
 
 #pragma once
 
 class EspNow
 {
-private:
-    static Display display;
-
 public:
     static int waterLevel;
     static unsigned long lastUpdatedMillis;
 
     void setup()
     {
-        display.setup();
-
         WiFi.mode(WIFI_STA);
         lastUpdatedMillis = millis();
 
@@ -38,8 +32,6 @@ public:
     {
         memcpy(&waterLevel, incomingData, sizeof(waterLevel));
 
-        display.displayLevel(waterLevel);
-
         Serial.print("Bytes received: ");
         Serial.println(len);
 
@@ -52,6 +44,5 @@ public:
     }
 };
 
-Display EspNow::display;
 int EspNow::waterLevel = 0;
 unsigned long EspNow::lastUpdatedMillis = 0;

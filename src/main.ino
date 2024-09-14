@@ -1,7 +1,9 @@
 #include <Arduino.h>
 #include <esp_now.h>
+#include <display.h>
 
 EspNow espNow;
+Display display;
 
 const int buzzerPin = D5;
 
@@ -13,10 +15,12 @@ void setup()
     Serial.begin(115200);
 
     espNow.setup();
+    display.setup();
 }
 
 void loop()
 {
+
     if (espNow.isLastUpdatedMoreThan(2))
     {
         digitalWrite(LED_BUILTIN, LOW);
@@ -29,12 +33,14 @@ void loop()
     }
     else
     {
-        digitalWrite(LED_BUILTIN, HIGH);
-        delay(1000);
-        digitalWrite(LED_BUILTIN, LOW);
-
         digitalWrite(buzzerPin, LOW);
 
+        display.displayLevel(espNow.waterLevel);
+
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(2000);
+
+        digitalWrite(LED_BUILTIN, LOW);
         delay(1000);
     }
 }
