@@ -13,12 +13,13 @@ void setup()
 
     espNow.setup();
     distance.setup();
+
+    pinMode(LED_BUILTIN, LOW);
 }
 
 void loop()
 {
-    double bestDistance = random(1, 101);
-    // double bestDistance = distance.getBestDistance();
+    double bestDistance = distance.getBestDistance();
 
     espNow.sendDistance(bestDistance);
 
