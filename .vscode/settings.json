@@ -10,6 +10,7 @@
         "atomic": "cpp",
         "new": "cpp",
         "cmath": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "system_error": "cpp"
     }
 }

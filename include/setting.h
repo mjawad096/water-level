@@ -27,6 +27,11 @@ public:
 
     Setting()
     {
+        load();
+    }
+
+    void load()
+    {
         preferences.begin("settings", false);
 
         Serial.println("Pref Settings loaded");
@@ -45,6 +50,14 @@ public:
         autoOnOnEmpty = preferences.getBool("autoOnOnEmpty", false);
 
         preferences.end();
+    }
+
+    void fill(const JsonVariant &json)
+    {
+        JsonDocument doc;
+        doc.set(json);
+
+        fill(doc);
     }
 
     void fill(const JsonDocument &obj)
@@ -108,9 +121,8 @@ public:
         Serial.println("Device Reset");
     }
 
-    String toString()
+    JsonDocument toJson()
     {
-        String data;
         JsonDocument doc;
 
         doc["apSSID"] = apSSID;
@@ -126,7 +138,14 @@ public:
         doc["autoOffOnFull"] = autoOffOnFull;
         doc["autoOnOnEmpty"] = autoOnOnEmpty;
 
-        serializeJson(doc, data);
+        return doc;
+    }
+
+    String toString()
+    {
+        String data;
+
+        serializeJson(toJson(), data);
 
         return data;
     }

@@ -20,7 +20,6 @@ class WebServer
 {
 private:
   bool rebootDevice = false;
-  bool resetDevice = false;
   int waterLevel = 0;
 
   AsyncWebServer *server;
@@ -66,14 +65,7 @@ public:
     server->onNotFound(
         [](AsyncWebServerRequest *request)
         {
-          if (request->method() == HTTP_OPTIONS)
-          {
-            request->send(200);
-          }
-          else
-          {
-            request->send(404);
-          }
+          sendApiResponse(request, request->method() == HTTP_OPTIONS ? 200 : 404);
         });
 
     server->on(
@@ -83,38 +75,29 @@ public:
           JsonDocument doc;
           doc["level"] = waterLevel;
 
-          String response;
-          serializeJson(doc, response);
-          request->send(200, "application/json", response);
+          sendApiResponse(request, 200, doc);
         });
 
     server->on(
         "/restart",
         [this](AsyncWebServerRequest *request)
         {
-          request->send(200, "application/json", apiResponse("Restarting device."));
-          request->client()->close();
+          sendApiResponse(request, 200, "Restarting device.");
+
           rebootDevice = true;
         });
 
-    server->on(
-        "/reset",
-        HTTP_POST,
-        [this](AsyncWebServerRequest *request)
+    events->onConnect(
+        [](AsyncEventSourceClient *client)
         {
-          request->send(200, "application/json", apiResponse("Resetting device."));
-          request->client()->close();
-          resetDevice = true;
+          if (client->lastId())
+          {
+            Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+          }
+          // send event with message "hello!", id current millis
+          // and set reconnect delay to 1 second
+          client->send("hello!", NULL, millis(), 10000);
         });
-
-    events->onConnect([](AsyncEventSourceClient *client)
-                      {
-      if(client->lastId()){
-        Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
-      }
-      // send event with message "hello!", id current millis
-      // and set reconnect delay to 1 second
-      client->send("hello!", NULL, millis(), 10000); });
 
     server->addHandler(events);
   }
@@ -126,26 +109,34 @@ public:
         HTTP_GET,
         [this](AsyncWebServerRequest *request)
         {
-          request->send(200, "application/json", settings->toString());
+          sendApiResponse(request, 200, settings->toJson());
+        });
+
+    server->on(
+        "/reset",
+        HTTP_POST,
+        [this](AsyncWebServerRequest *request)
+        {
+          sendApiResponse(request, 200, "Resetting device.");
+
+          settings->reset();
         });
 
     AsyncCallbackJsonWebHandler *settingsHandler = new AsyncCallbackJsonWebHandler(
         "/settings",
         [this](AsyncWebServerRequest *request, JsonVariant &json)
         {
-          JsonDocument doc;
-          doc.set(json);
-          settings->fill(doc);
+          settings->fill(json);
 
           if (!settings->validate())
           {
-            request->send(400, "application/json", apiResponse(settings->lastError ?: "Uknown error"));
+            sendApiResponse(request, 400, settings->lastError ?: "Uknown error");
           }
           else
           {
+            sendApiResponse(request, 200, "Settings saved");
+
             settings->save();
-            rebootDevice = true;
-            request->send(200, "application/json", apiResponse("Settings saved"));
           }
         });
 
@@ -159,8 +150,7 @@ public:
         HTTP_POST,
         [this](AsyncWebServerRequest *request)
         {
-          request->send(200, "application/json", apiResponse("Switching on."));
-          request->client()->close();
+          sendApiResponse(request, 200, "Switching on.");
 
           rfSwitch->sendSwitchState(true, true);
         });
@@ -170,8 +160,7 @@ public:
         HTTP_POST,
         [this](AsyncWebServerRequest *request)
         {
-          request->send(200, "application/json", apiResponse("Switching off."));
-          request->client()->close();
+          sendApiResponse(request, 200, "Switching off.");
 
           rfSwitch->sendSwitchState(false, true);
         });
@@ -179,17 +168,21 @@ public:
 
   void setupStaticRoutes()
   {
-    server->on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/index.html", "text/html"); });
+    server->on(
+        "/", HTTP_GET, [](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/index.html", "text/html"); });
 
-    server->on("/index.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/index.css", "text/css"); });
+    server->on(
+        "/index.css", HTTP_GET, [](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/index.css", "text/css"); });
 
-    server->on("/styles.css", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/styles.css", "text/css"); });
+    server->on(
+        "/styles.css", HTTP_GET, [](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/styles.css", "text/css"); });
 
-    server->on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
-               { request->send(LittleFS, "/index.js", "text/javascript"); });
+    server->on(
+        "/index.js", HTTP_GET, [](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/index.js", "text/javascript"); });
   }
 
   void checkForReboot()
@@ -198,16 +191,6 @@ public:
     {
       delay(500);
       ESP.restart();
-    }
-  }
-
-  void checkForReset()
-  {
-    if (resetDevice)
-    {
-      delay(500);
-      settings->reset();
-      rebootDevice = true;
     }
   }
 

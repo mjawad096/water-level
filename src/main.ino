@@ -38,7 +38,6 @@ void loop()
 {
     // Serial.println(settings->toString());
 
-    webServer->checkForReset();
     webServer->checkForReboot();
 
     reset.checkForReset();
