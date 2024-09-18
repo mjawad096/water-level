@@ -21,6 +21,8 @@ void setup()
 
     Serial.begin(115200);
 
+    settings.load();
+
     espNow.setup(&settings);
     reset.setup(&settings);
     waterLevel.setup(&settings);

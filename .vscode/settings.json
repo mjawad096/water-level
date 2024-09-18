@@ -11,6 +11,8 @@
         "new": "cpp",
         "cmath": "cpp",
         "iterator": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp"
     }
 }

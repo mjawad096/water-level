@@ -25,11 +25,6 @@ public:
 
     String lastError = "";
 
-    Setting()
-    {
-        load();
-    }
-
     void load()
     {
         preferences.begin("settings", false);
