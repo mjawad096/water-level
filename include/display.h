@@ -13,6 +13,7 @@ class Display
 private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
+    int level;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -39,10 +40,19 @@ public:
             display.clearDisplay();
             display.display();
         }
+
+        level = -1;
     }
 
     void displayLevel(int level)
     {
+        if (level == this->level)
+        {
+            return;
+        }
+
+        this->level = level;
+
         if (!dispalyInitialized)
         {
             return;
