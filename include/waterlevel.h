@@ -38,7 +38,7 @@ public:
         this->settings = settings;
     }
 
-    WaterLevelData *getLevel()
+    WaterLevelData getLevel()
     {
         double topEndDistanceFromDevice = settings->topEndFromDevice;
         double bottomEndDistanceFromDevice = settings->bottomEndFromDevice;
@@ -60,7 +60,7 @@ public:
             level = 100;
         }
 
-        return new WaterLevelData(level, WaterLevel::deviceToWaterDistance);
+        return WaterLevelData(level, WaterLevel::deviceToWaterDistance);
     }
 };
 

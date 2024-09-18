@@ -26,12 +26,20 @@ private:
   AsyncEventSource *events;
   Setting *settings;
   Switch *rfSwitch;
+  AsyncCallbackJsonWebHandler *saveSettingsHandler;
 
 public:
   WebServer()
   {
     server = new AsyncWebServer(80);
     events = new AsyncEventSource("/events");
+  }
+
+  ~WebServer()
+  {
+    delete server;
+    delete events;
+    delete saveSettingsHandler;
   }
 
   void setup(Setting *settings, Switch *rfSwitch)
@@ -122,7 +130,7 @@ public:
           settings->reset();
         });
 
-    AsyncCallbackJsonWebHandler *settingsHandler = new AsyncCallbackJsonWebHandler(
+    saveSettingsHandler = new AsyncCallbackJsonWebHandler(
         "/settings",
         [this](AsyncWebServerRequest *request, JsonVariant &json)
         {
@@ -140,7 +148,7 @@ public:
           }
         });
 
-    server->addHandler(settingsHandler);
+    server->addHandler(saveSettingsHandler);
   }
 
   void setupSwitchRoutes()
@@ -197,6 +205,13 @@ public:
   void setWaterLevel(WaterLevelData *levelData)
   {
     char *dataChars = levelData->formatForSSEvent();
+
+    if (dataChars == nullptr)
+    {
+      Serial.println("Error: Memory allocation failed for SSE event.");
+
+      return;
+    }
 
     events->send(dataChars, "water_level_data", millis());
 

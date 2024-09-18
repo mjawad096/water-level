@@ -78,7 +78,7 @@ public:
 
         Serial.print(macStr);
         Serial.print(" Send status:\t");
-        Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
+        Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
     }
 
     // callback when data is received
@@ -87,6 +87,9 @@ public:
         try
         {
             memcpy(&WaterLevel::deviceToWaterDistance, incomingData, sizeof(WaterLevel::deviceToWaterDistance));
+
+            Serial.print("Distance received: ");
+            Serial.println(WaterLevel::deviceToWaterDistance);
         }
         catch (const std::exception &e)
         {

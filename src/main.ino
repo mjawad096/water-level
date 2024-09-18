@@ -11,9 +11,9 @@ EspNow espNow;
 Reset reset;
 WaterLevel waterLevel;
 
-Setting *settings;
-Switch *rfSwitch;
-WebServer *webServer;
+Setting settings;
+Switch rfSwitch;
+WebServer webServer;
 
 void setup()
 {
@@ -21,41 +21,45 @@ void setup()
 
     Serial.begin(115200);
 
-    settings = new Setting();
-    rfSwitch = new Switch();
-    webServer = new WebServer();
-
-    espNow.setup(settings);
-    reset.setup(settings);
-    waterLevel.setup(settings);
+    espNow.setup(&settings);
+    reset.setup(&settings);
+    waterLevel.setup(&settings);
     display.setup();
 
-    rfSwitch->setup(settings);
-    webServer->setup(settings, rfSwitch);
+    rfSwitch.setup(&settings);
+    webServer.setup(&settings, &rfSwitch);
 }
 
 void loop()
 {
-    // Serial.println(settings->toString());
+    // Serial.println(settings.toString());
 
-    webServer->checkForReboot();
+    webServer.checkForReboot();
 
     reset.checkForReset();
 
-    processWaterLevel(waterLevel.getLevel());
+    WaterLevelData levelData = waterLevel.getLevel();
 
-    delay(settings->durationForPing * 1000);
+    processWaterLevel(&levelData);
+
+    delay(settings.durationForPing * 1000);
 }
 
 void processWaterLevel(WaterLevelData *levelData)
 {
-    webServer->setWaterLevel(levelData);
+    if (levelData == nullptr)
+    {
+        Serial.println("Error: Null water level data received.");
+        return;
+    }
+
+    webServer.setWaterLevel(levelData);
     espNow.sendWaterLevel(levelData);
 
     display.displayLevel(levelData->level);
 
-    rfSwitch->checkForOpenState(levelData->level);
-    rfSwitch->checkForCloseState(levelData->level);
+    rfSwitch.checkForOpenState(levelData->level);
+    rfSwitch.checkForCloseState(levelData->level);
 
     Serial.print("Level: ");
     Serial.print(levelData->level);
