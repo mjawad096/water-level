@@ -1,5 +1,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <waterlevel.h>
 
 #pragma once
 
@@ -41,8 +42,14 @@ public:
         }
     }
 
-    void displayLevel(int level)
+    void displayLevel(WaterLevelData *levelData)
     {
+        if (levelData == nullptr)
+        {
+            Serial.println("Error: Null water level data received.");
+            return;
+        }
+
         if (!dispalyInitialized)
         {
             return;
@@ -50,7 +57,7 @@ public:
 
         int levelStartCursor = 15;
 
-        if (level == 100)
+        if (levelData->level == 100)
         {
             levelStartCursor = 5;
         }
@@ -64,7 +71,7 @@ public:
         display.println("-------------------");
         display.setCursor(levelStartCursor, 27);
         display.setTextSize(5);
-        display.print(level);
+        display.print(levelData->level);
         display.print('%');
         display.display();
     }

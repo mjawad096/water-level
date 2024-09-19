@@ -1,5 +1,6 @@
 #include <RCSwitch.h>
 #include <setting.h>
+#include <waterlevel.h>
 
 #pragma once
 
@@ -18,6 +19,18 @@ public:
         this->settings = settings;
 
         mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
+    }
+
+    void determineSwitchState(WaterLevelData *levelData)
+    {
+        if (levelData == nullptr)
+        {
+            Serial.println("Error: Null water level data received.");
+            return;
+        }
+
+        checkForOpenState(levelData->level);
+        checkForCloseState(levelData->level);
     }
 
     void sendSwitchState(bool state, bool manual = false)

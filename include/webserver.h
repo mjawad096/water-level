@@ -204,6 +204,12 @@ public:
 
   void setWaterLevel(WaterLevelData *levelData)
   {
+    if (levelData == nullptr)
+    {
+      Serial.println("Error: Null water level data received.");
+      return;
+    }
+
     char *dataChars = levelData->formatForSSEvent();
 
     if (dataChars == nullptr)

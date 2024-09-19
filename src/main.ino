@@ -56,12 +56,12 @@ void processWaterLevel(WaterLevelData *levelData)
     }
 
     webServer.setWaterLevel(levelData);
+
     espNow.sendWaterLevel(levelData);
 
-    display.displayLevel(levelData->level);
+    display.displayLevel(levelData);
 
-    rfSwitch.checkForOpenState(levelData->level);
-    rfSwitch.checkForCloseState(levelData->level);
+    rfSwitch.determineSwitchState(levelData);
 
     Serial.print("Level: ");
     Serial.print(levelData->level);

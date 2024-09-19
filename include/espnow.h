@@ -53,6 +53,12 @@ public:
 
     void sendWaterLevel(WaterLevelData *waterLevelData)
     {
+        if (waterLevelData == nullptr)
+        {
+            Serial.println("Error: Null water level data received.");
+            return;
+        }
+
         esp_err_t result = esp_now_send(0, (uint8_t *)&waterLevelData->level, sizeof(waterLevelData->level));
 
         if (result == ESP_OK)
