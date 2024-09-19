@@ -9,9 +9,15 @@ class Switch
 private:
     RCSwitch mySwitch;
     Setting *settings;
+
     int rfSwitchPin = GPIO_NUM_27;
-    long lastSentOnTime;
-    long lastSentOffTime;
+
+    long lastSentOnTime = 0;
+    long lastSentOffTime = 0;
+
+    int previousLevel = 0;
+    bool isDecreasing = false;
+    int stopStateSentForLevel = -1;
 
 public:
     void setup(Setting *settings)
@@ -29,8 +35,12 @@ public:
             return;
         }
 
+        isDecreasing = levelData->level < previousLevel;
+
         checkForOpenState(levelData->level);
         checkForCloseState(levelData->level);
+
+        previousLevel = levelData->level;
     }
 
     void sendSwitchState(bool state, bool manual = false)
@@ -76,12 +86,14 @@ public:
 
     void checkForCloseState(int level)
     {
-        if (!settings->autoOffOnFull)
+        if (!settings->autoOffOnFull || level < settings->fullThreshold || isDecreasing)
         {
+            stopStateSentForLevel = -1;
+
             return;
         }
 
-        if (level < settings->fullThreshold)
+        if (stopStateSentForLevel == level || stopStateSentForLevel == level - 1)
         {
             return;
         }
@@ -92,5 +104,7 @@ public:
         }
 
         sendSwitchState(false);
+
+        stopStateSentForLevel = level;
     }
 };
