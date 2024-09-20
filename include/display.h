@@ -15,6 +15,8 @@ private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
     int level;
+    unsigned long lastDisplayIpTime = 0;
+    unsigned int displayIp = 1;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -77,9 +79,50 @@ public:
         display.println("-------------------");
 
         display.setCursor(levelStartCursor, 20);
-        display.setTextSize(5);
-        display.print(level);
+        display.setTextSize(4);
+        display.print(this->level);
         display.println('%');
+
+        display.setCursor(0, 55);
+        display.setTextSize(1);
+
+        if (millis() - lastDisplayIpTime > 5000)
+        {
+            if (displayIp == 3)
+            {
+                displayIp = 1;
+            }
+            else
+            {
+                displayIp++;
+            }
+
+            lastDisplayIpTime = millis();
+        }
+
+        String ipMessage = "";
+        String mac;
+
+        switch (displayIp)
+        {
+        case 1:
+            ipMessage = "IP: " + WiFi.localIP().toString();
+            break;
+
+        case 2:
+            mac = WiFi.macAddress();
+            mac.replace(":", "");
+            ipMessage = "MAC: " + mac;
+            break;
+
+        case 3:
+            mac = WiFi.softAPmacAddress();
+            mac.replace(":", "");
+            ipMessage = "APMAC: " + mac;
+            break;
+        }
+
+        display.println(ipMessage);
 
         display.display();
     }
