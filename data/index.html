@@ -168,24 +168,6 @@
                 </div>
               </div>
 
-              <!-- Delay Stop Switch -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Delay Stop Switch (Seconds)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.delay_stop_switch"
-                      step="1"
-                      placeholder="Enter delay stop switch"
-                    />
-                  </label>
-                </div>
-              </div>
-
               <!-- Full Threshold -->
               <div class="mb-4">
                 <div>
@@ -305,7 +287,6 @@
             top_end_from_device: "",
             bottom_end_from_device: "",
             delay_start_switch: "",
-            delay_stop_switch: "",
             full_threshold: "",
             empty_threshold: "",
             auto_off_on_full: "",
@@ -450,7 +431,6 @@
               this.settings_form.bottom_end_from_device =
                 data.bottomEndFromDevice;
               this.settings_form.delay_start_switch = data.delayStartSwitch;
-              this.settings_form.delay_stop_switch = data.delayStopSwitch;
               this.settings_form.full_threshold = data.fullThreshold;
               this.settings_form.empty_threshold = data.emptyThreshold;
               this.settings_form.auto_off_on_full = data.autoOffOnFull;
@@ -471,7 +451,6 @@
               topEndFromDevice: this.settings_form.top_end_from_device,
               bottomEndFromDevice: this.settings_form.bottom_end_from_device,
               delayStartSwitch: this.settings_form.delay_start_switch,
-              delayStopSwitch: this.settings_form.delay_stop_switch,
               fullThreshold: this.settings_form.full_threshold,
               emptyThreshold: this.settings_form.empty_threshold,
               autoOffOnFull: this.settings_form.auto_off_on_full,

@@ -13,7 +13,6 @@ private:
     int rfSwitchPin = GPIO_NUM_27;
 
     long lastSentOnTime = 0;
-    long lastSentOffTime = 0;
 
     int previousLevel = 0;
     bool isDecreasing = false;
@@ -48,10 +47,10 @@ public:
         int data = state ? 5557608 : 15859236;
 
         mySwitch.send(data, 24);
-        delay(1000);
+        delay(2000);
 
         mySwitch.send(data, 24);
-        delay(1000);
+        delay(2000);
 
         mySwitch.send(data, 24);
 
@@ -64,20 +63,11 @@ public:
         {
             lastSentOnTime = millis();
         }
-        else
-        {
-            lastSentOffTime = millis();
-        }
     }
 
     void checkForOpenState(int level)
     {
-        if (!settings->autoOnOnEmpty)
-        {
-            return;
-        }
-
-        if (level > settings->emptyThreshold)
+        if (!settings->autoOnOnEmpty || level > settings->emptyThreshold)
         {
             return;
         }
@@ -99,12 +89,7 @@ public:
             return;
         }
 
-        if (stopStateSentForLevel == level || stopStateSentForLevel == level - 1)
-        {
-            return;
-        }
-
-        if (millis() - lastSentOffTime < (settings->delayStopSwitch * 1000))
+        if (stopStateSentForLevel == level)
         {
             return;
         }
