@@ -105,6 +105,14 @@ public:
 
         sendSwitchState(false);
 
+        delay(1000);
+
+        sendSwitchState(false, true);
+
+        delay(1000);
+
+        sendSwitchState(false, true);
+
         stopStateSentForLevel = level;
     }
 };
