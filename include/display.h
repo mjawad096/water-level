@@ -16,6 +16,8 @@ private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
     String apSSID;
+    unsigned long lastDisplayIpTime = 0;
+    bool displayIp = false;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -87,7 +89,21 @@ public:
 
         display.setCursor(0, 55);
         display.setTextSize(1);
-        display.println("SSID: " + apSSID);
+
+        if (millis() - lastDisplayIpTime > 5000)
+        {
+            displayIp = !displayIp;
+            lastDisplayIpTime = millis();
+        }
+
+        if (displayIp)
+        {
+            display.println("IP: " + WiFi.localIP().toString());
+        }
+        else
+        {
+            display.println("SSID: " + apSSID);
+        }
 
         display.display();
     }
