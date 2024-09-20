@@ -10,8 +10,8 @@ private:
     Preferences preferences;
 
 public:
-    String apSSID = "";
-    String apPassword = "";
+    String wifiSSID = "test";
+    String wifiPassword = "12345678";
 
     long durationForPing = 5; // seconds
     long topEndFromDevice = 0;
@@ -30,8 +30,8 @@ public:
 
         Serial.println("Pref Settings loaded");
 
-        apSSID = preferences.getString("apSSID", "");
-        apPassword = preferences.getString("apPassword", "");
+        wifiSSID = preferences.getString("wifiSSID", "test");
+        wifiPassword = preferences.getString("wifiPassword", "12345678");
 
         durationForPing = preferences.getLong("durationForPing", 5);
         topEndFromDevice = preferences.getLong("topFromDevice", 0);
@@ -55,8 +55,8 @@ public:
 
     void fill(const JsonDocument &obj)
     {
-        apSSID = obj["apSSID"].as<String>();
-        apPassword = obj["apPassword"].as<String>();
+        wifiSSID = obj["wifiSSID"].as<String>();
+        wifiPassword = obj["wifiPassword"].as<String>();
 
         durationForPing = obj["durationForPing"].as<long>();
         topEndFromDevice = obj["topEndFromDevice"].as<long>();
@@ -77,8 +77,8 @@ public:
     {
         preferences.begin("settings", false);
 
-        preferences.putString("apSSID", apSSID);
-        preferences.putString("apPassword", apPassword);
+        preferences.putString("wifiSSID", wifiSSID);
+        preferences.putString("wifiPassword", wifiPassword);
 
         preferences.putLong("durationForPing", durationForPing);
         preferences.putLong("topFromDevice", topEndFromDevice);
@@ -94,8 +94,8 @@ public:
 
     void reset()
     {
-        apSSID = "";
-        apPassword = "";
+        wifiSSID = "test";
+        wifiPassword = "12345678";
 
         durationForPing = 5;
         topEndFromDevice = 0;
@@ -115,8 +115,8 @@ public:
     {
         JsonDocument doc;
 
-        doc["apSSID"] = apSSID;
-        doc["apPassword"] = apPassword;
+        doc["wifiSSID"] = wifiSSID;
+        doc["wifiPassword"] = wifiPassword;
 
         doc["durationForPing"] = durationForPing;
         doc["topEndFromDevice"] = topEndFromDevice;

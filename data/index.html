@@ -61,13 +61,13 @@
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                     for="name"
                   >
-                    AP SSID
+                    Wifi SSID
                   </label>
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                     id="name"
                     type="text"
-                    x-model="settings_form.ap_ssid"
+                    x-model="settings_form.wifi_ssid"
                     autofocus="autofocus"
                   />
                 </div>
@@ -78,19 +78,19 @@
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
                     for="name"
                   >
-                    AP Password (
+                    Wifi Password (
                     <a
                       href="#"
-                      @click.prevent="showApPass = !showApPass"
-                      x-text="showApPass ? 'Hide' : 'Show'"
+                      @click.prevent="showWifiPass = !showWifiPass"
+                      x-text="showWifiPass ? 'Hide' : 'Show'"
                     ></a>
                     )
                   </label>
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                     id="name"
-                    :type="showApPass ? 'text' : 'password'"
-                    x-model="settings_form.ap_password"
+                    :type="showWifiPass ? 'text' : 'password'"
+                    x-model="settings_form.wifi_password"
                     autofocus="autofocus"
                   />
                 </div>
@@ -273,14 +273,14 @@
         Alpine.data("mainComponent", () => ({
           endpoint: "http://192.168.4.1",
 
-          showApPass: false,
+          showWifiPass: false,
 
           waterLevel: 0,
           deviceToWaterDistance: 0,
 
           settings_form: {
-            ap_ssid: "",
-            ap_password: "",
+            wifi_ssid: "",
+            wifi_password: "",
             wifi_ssid: "",
             wifi_password: "",
             duration_for_ping: "",
@@ -420,8 +420,8 @@
             if (response.status == 200 && response.data) {
               let data = response.data;
 
-              this.settings_form.ap_ssid = data.apSSID;
-              this.settings_form.ap_password = data.apPassword;
+              this.settings_form.wifi_ssid = data.wifiSSID;
+              this.settings_form.wifi_password = data.wifiPassword;
 
               this.settings_form.wifi_ssid = data.wifiSSID;
               this.settings_form.wifi_password = data.wifiPassword;
@@ -441,8 +441,8 @@
           async saveSettings() {
             this.loading = true;
             let response = await this.post(`${this.endpoint}/settings`, {
-              apSSID: this.settings_form.ap_ssid,
-              apPassword: this.settings_form.ap_password,
+              wifiSSID: this.settings_form.wifi_ssid,
+              wifiPassword: this.settings_form.wifi_password,
 
               wifiSSID: this.settings_form.wifi_ssid,
               wifiPassword: this.settings_form.wifi_password,

@@ -13,6 +13,8 @@
         "iterator": "cpp",
         "system_error": "cpp",
         "fstream": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "string_view": "cpp",
+        "regex": "cpp"
     }
 }
