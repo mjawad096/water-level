@@ -26,6 +26,8 @@ public:
         this->settings = settings;
 
         mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
+
+        mySwitch.setRepeatTransmit(15);
     }
 
     void handleSwitchState(WaterLevelData *levelData)
@@ -55,6 +57,8 @@ public:
     {
         int data = state ? 5557608 : 15859236;
 
+        Serial.println(state ? "Switching on." : "Switching off.");
+
         mySwitch.send(data, 24);
         delay(2000);
 
@@ -65,6 +69,7 @@ public:
 
         if (manualSwitchRequested != -1)
         {
+            Serial.println("Manual switch requested: " + String(manualSwitchRequested));
             manualSwitchRequested = -1;
             return;
         }
