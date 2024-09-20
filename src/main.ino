@@ -21,12 +21,16 @@ void setup()
 
     Serial.begin(115200);
 
+    display.setup();
+
+    display.displayText("Water Level Monitor.");
+    display.displayText("Initializing...", false);
+
     settings.load();
 
-    espNow.setup(&settings);
+    espNow.setup(&settings, &display);
     reset.setup(&settings);
     waterLevel.setup(&settings);
-    display.setup();
 
     rfSwitch.setup(&settings);
     webServer.setup(&settings, &rfSwitch);

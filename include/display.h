@@ -1,6 +1,8 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <waterlevel.h>
+#include <WiFi.h>
+#include <wifi_connect.h>
 
 #pragma once
 
@@ -64,15 +66,43 @@ public:
 
         display.clearDisplay();
 
-        display.setTextSize(1);
         display.setTextColor(SSD1306_WHITE);
+
         display.setCursor(0, 0);
-        display.println("Water Level in Tank");
+        display.setTextSize(1);
+        display.print("Water Level");
+        display.println(" (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")");
         display.println("-------------------");
-        display.setCursor(levelStartCursor, 27);
-        display.setTextSize(5);
+
+        display.setCursor(levelStartCursor, 20);
+        display.setTextSize(4);
         display.print(levelData->level);
-        display.print('%');
+        display.println('%');
+
+        display.setCursor(0, 55);
+        display.setTextSize(1);
+        display.println("SSID: " + WifiConnect::getApSSID());
+    }
+
+    void displayText(String text, bool clear = true)
+    {
+        if (!dispalyInitialized)
+        {
+            return;
+        }
+
+        if (clear)
+        {
+            display.clearDisplay();
+            display.setCursor(0, 0);
+        }
+
+        display.setTextColor(SSD1306_WHITE);
+
+        display.setTextSize(1);
+        display.println(text);
+        display.println("");
+
         display.display();
     }
 };

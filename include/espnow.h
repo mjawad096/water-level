@@ -1,7 +1,8 @@
 #include <esp_now.h>
 #include <WiFi.h>
 #include <wifi_connect.h>
-#include "waterlevel.h"
+#include <waterlevel.h>
+#include <display.h>
 
 #pragma once
 
@@ -15,9 +16,9 @@ private:
     WifiConnect wifiConnect;
 
 public:
-    void setup(Setting *settings)
+    void setup(Setting *settings, Display *display)
     {
-        wifiConnect.setup(settings);
+        wifiConnect.setup(settings, display);
 
         if (esp_now_init() != ESP_OK)
         {
