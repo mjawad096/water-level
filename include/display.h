@@ -14,7 +14,6 @@ class Display
 private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
-    int level;
     unsigned long lastDisplayIpTime = 0;
     unsigned int displayIp = 1;
 
@@ -43,19 +42,10 @@ public:
             display.clearDisplay();
             display.display();
         }
-
-        level = -1;
     }
 
     void displayLevel(int level)
     {
-        if (level == this->level)
-        {
-            return;
-        }
-
-        this->level = level;
-
         if (!dispalyInitialized)
         {
             return;
@@ -80,7 +70,7 @@ public:
 
         display.setCursor(levelStartCursor, 20);
         display.setTextSize(4);
-        display.print(this->level);
+        display.print(level);
         display.println('%');
 
         display.setCursor(0, 55);
