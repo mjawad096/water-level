@@ -23,7 +23,6 @@ void setup()
 
     display.setup();
 
-    display.displayText("Water Level Monitor.");
     display.displayText("Initializing...", false);
 
     settings.load();

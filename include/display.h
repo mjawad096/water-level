@@ -59,6 +59,7 @@ public:
 
         if (!dispalyInitialized)
         {
+            Serial.println("Error: Display not initialized.");
             return;
         }
 
@@ -87,6 +88,8 @@ public:
         display.setCursor(0, 55);
         display.setTextSize(1);
         display.println("SSID: " + apSSID);
+
+        display.display();
     }
 
     void displayText(String text, bool clear = true)

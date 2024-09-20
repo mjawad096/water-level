@@ -42,7 +42,7 @@ public:
         Serial.println(IP);
 
         display->setApSSID(apSSID);
-        display->displayText("AP started: " + apSSID, false);
+        display->displayText("AP: " + apSSID, false);
     }
 
     String getWifiAPName()
