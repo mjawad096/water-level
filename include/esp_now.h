@@ -1,17 +1,22 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
+#include <wifi_connect.h>
 
 #pragma once
 
 class EspNow
 {
+private:
+    WifiConnect wifiConnect;
+
 public:
     static int waterLevel;
     static unsigned long lastUpdatedMillis;
 
     void setup()
     {
-        WiFi.mode(WIFI_STA);
+        wifiConnect.setup();
+
         lastUpdatedMillis = millis();
 
         // Init ESP-NOW
