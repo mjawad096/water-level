@@ -2,7 +2,6 @@
 #include <Adafruit_SSD1306.h>
 #include <waterlevel.h>
 #include <WiFi.h>
-#include <wifi_connect.h>
 
 #pragma once
 
@@ -16,6 +15,7 @@ class Display
 private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
+    String apSSID;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -42,6 +42,11 @@ public:
             display.clearDisplay();
             display.display();
         }
+    }
+
+    void setApSSID(String apSSID)
+    {
+        this->apSSID = apSSID;
     }
 
     void displayLevel(WaterLevelData *levelData)
@@ -81,7 +86,7 @@ public:
 
         display.setCursor(0, 55);
         display.setTextSize(1);
-        display.println("SSID: " + WifiConnect::getApSSID());
+        display.println("SSID: " + apSSID);
     }
 
     void displayText(String text, bool clear = true)

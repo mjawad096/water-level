@@ -7,8 +7,6 @@
 class WifiConnect
 {
 private:
-    static String apSSID;
-
     Setting *settings;
     Display *display;
 
@@ -31,7 +29,7 @@ public:
 
     void setupAccessPoint()
     {
-        apSSID = getWifiAPName();
+        String apSSID = getWifiAPName();
 
         WiFi.softAP(apSSID, "", 1, 1);
 
@@ -43,6 +41,7 @@ public:
         Serial.print("IP Address: ");
         Serial.println(IP);
 
+        display->setApSSID(apSSID);
         display->displayText("AP started: " + apSSID, false);
     }
 
@@ -92,12 +91,4 @@ public:
 
         delay(2000);
     }
-
-    static String getApSSID();
 };
-
-String WifiConnect::apSSID = "";
-String WifiConnect::getApSSID()
-{
-    return apSSID;
-}
