@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 #include <wifi_connect.h>
+#include <display.h>
 
 #pragma once
 
@@ -8,14 +9,15 @@ class EspNow
 {
 private:
     WifiConnect wifiConnect;
+    Display *display;
 
 public:
     static int waterLevel;
     static unsigned long lastUpdatedMillis;
 
-    void setup()
+    void setup(Display *display)
     {
-        wifiConnect.setup();
+        wifiConnect.setup(display);
 
         lastUpdatedMillis = millis();
 

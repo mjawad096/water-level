@@ -13,8 +13,12 @@ void setup()
 {
     Serial.begin(115200);
 
-    espNow.setup();
     display.setup();
+
+    display.displayText("Water Level Monitor.");
+    display.displayText("Initializing...", false);
+
+    espNow.setup(&display);
     buzzer.setup();
     led.setup();
 }

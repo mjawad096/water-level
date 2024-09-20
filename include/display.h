@@ -97,8 +97,11 @@ public:
             display.setCursor(0, 0);
         }
 
+        display.setTextColor(SSD1306_WHITE);
+
         display.setTextSize(1);
         display.println(text);
+        display.println("");
 
         display.display();
     }
