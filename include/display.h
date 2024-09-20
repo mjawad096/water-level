@@ -17,7 +17,7 @@ private:
     bool dispalyInitialized;
     String apSSID;
     unsigned long lastDisplayIpTime = 0;
-    bool displayIp = false;
+    unsigned int displayIp = 1;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -92,18 +92,40 @@ public:
 
         if (millis() - lastDisplayIpTime > 5000)
         {
-            displayIp = !displayIp;
+            if (displayIp == 4)
+            {
+                displayIp = 1;
+            }
+            else
+            {
+                displayIp++;
+            }
+
             lastDisplayIpTime = millis();
         }
 
-        if (displayIp)
+        String ipMessage = "";
+
+        switch (displayIp)
         {
-            display.println("IP: " + WiFi.localIP().toString());
+        case 1:
+            ipMessage = "IP: " + WiFi.localIP().toString();
+            break;
+
+        case 2:
+            ipMessage = "SSID: " + apSSID;
+            break;
+
+        case 3:
+            ipMessage = "MAC: " + WiFi.macAddress();
+            break;
+
+        case 4:
+            ipMessage = "APMAC: " + WiFi.softAPmacAddress();
+            break;
         }
-        else
-        {
-            display.println("SSID: " + apSSID);
-        }
+
+        display.println(ipMessage);
 
         display.display();
     }
