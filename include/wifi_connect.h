@@ -8,7 +8,7 @@ class WifiConnect
 private:
     Display *display;
 
-    const String ssid = "WL_AB1C82AB1C82";
+    const String ssid = "WL_1C72A8F7A608";
 
 public:
     void setup(Display *display)
