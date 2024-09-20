@@ -1,20 +1,22 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
+#include <wifi_connect.h>
 
 #pragma once
 
 class EspNow
 {
+
 private:
+    WifiConnect wifiConnect;
     uint8_t broadcastAddress[6] = {0x08, 0xA6, 0xF7, 0xA8, 0x72, 0x1C};
+    uint8_t broadcastAddress1[6] = {0x08, 0xA6, 0xF7, 0xA8, 0x72, 0x1D};
 
 public:
     void setup()
     {
-        // Set device as a Wi-Fi Station
-        WiFi.mode(WIFI_STA);
+        wifiConnect.setup();
 
-        // Init ESP-NOW
         if (esp_now_init() != 0)
         {
             Serial.println("Error initializing ESP-NOW");
@@ -27,7 +29,17 @@ public:
         esp_now_register_send_cb(OnDataSent);
 
         // Register peer
-        esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_SLAVE, 1, NULL, 0);
+        if (esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_SLAVE, 0, NULL, 0) != 0)
+        {
+            Serial.println("Failed to add peer");
+            return;
+        }
+
+        if (esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_SLAVE, 0, NULL, 0) != 0)
+        {
+            Serial.println("Failed to add peer");
+            return;
+        }
     }
 
     // Callback when data is sent
