@@ -18,6 +18,8 @@ private:
     bool isDecreasing = false;
     int stopStateSentForLevel = -1;
 
+    int manualSwitchRequested = -1;
+
 public:
     void setup(Setting *settings)
     {
@@ -26,7 +28,7 @@ public:
         mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
     }
 
-    void determineSwitchState(WaterLevelData *levelData)
+    void handleSwitchState(WaterLevelData *levelData)
     {
         if (levelData == nullptr)
         {
@@ -36,13 +38,20 @@ public:
 
         isDecreasing = levelData->level < previousLevel;
 
-        checkForOpenState(levelData->level);
-        checkForCloseState(levelData->level);
+        if (manualSwitchRequested != -1)
+        {
+            sendSwitchState(manualSwitchRequested ? true : false);
+        }
+        else
+        {
+            checkForOpenState(levelData->level);
+            checkForCloseState(levelData->level);
+        }
 
         previousLevel = levelData->level;
     }
 
-    void sendSwitchState(bool state, bool manual = false)
+    void sendSwitchState(bool state)
     {
         int data = state ? 5557608 : 15859236;
 
@@ -54,8 +63,9 @@ public:
 
         mySwitch.send(data, 24);
 
-        if (manual)
+        if (manualSwitchRequested != -1)
         {
+            manualSwitchRequested = -1;
             return;
         }
 
@@ -97,5 +107,15 @@ public:
         sendSwitchState(false);
 
         stopStateSentForLevel = level;
+    }
+
+    void manualStart()
+    {
+        manualSwitchRequested = 1;
+    }
+
+    void manualStop()
+    {
+        manualSwitchRequested = 0;
     }
 };

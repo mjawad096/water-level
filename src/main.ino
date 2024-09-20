@@ -61,7 +61,7 @@ void processWaterLevel(WaterLevelData *levelData)
 
     display.displayLevel(levelData);
 
-    rfSwitch.determineSwitchState(levelData);
+    rfSwitch.handleSwitchState(levelData);
 
     Serial.print("Level: ");
     Serial.print(levelData->level);

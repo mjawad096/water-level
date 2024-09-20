@@ -160,7 +160,7 @@ public:
         {
           sendApiResponse(request, 200, "Switching on.");
 
-          rfSwitch->sendSwitchState(true, true);
+          rfSwitch->manualStart();
         });
 
     server->on(
@@ -170,7 +170,7 @@ public:
         {
           sendApiResponse(request, 200, "Switching off.");
 
-          rfSwitch->sendSwitchState(false, true);
+          rfSwitch->manualStop();
         });
   }
 
