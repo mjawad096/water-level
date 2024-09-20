@@ -105,6 +105,7 @@ public:
         }
 
         String ipMessage = "";
+        String mac;
 
         switch (displayIp)
         {
@@ -117,11 +118,15 @@ public:
             break;
 
         case 3:
-            ipMessage = "MAC: " + WiFi.macAddress();
+            mac = WiFi.macAddress();
+            mac.replace(":", "");
+            ipMessage = "MAC: " + mac;
             break;
 
         case 4:
-            ipMessage = "APMAC: " + WiFi.softAPmacAddress();
+            mac = WiFi.softAPmacAddress();
+            mac.replace(":", "");
+            ipMessage = "APMAC: " + mac;
             break;
         }
 
