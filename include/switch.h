@@ -48,6 +48,12 @@ public:
         int data = state ? 5557608 : 15859236;
 
         mySwitch.send(data, 24);
+        delay(1000);
+
+        mySwitch.send(data, 24);
+        delay(1000);
+
+        mySwitch.send(data, 24);
 
         if (manual)
         {
@@ -104,14 +110,6 @@ public:
         }
 
         sendSwitchState(false);
-
-        delay(1000);
-
-        sendSwitchState(false, true);
-
-        delay(1000);
-
-        sendSwitchState(false, true);
 
         stopStateSentForLevel = level;
     }
