@@ -60,10 +60,11 @@ void processWaterLevel(WaterLevelData *levelData)
         return;
     }
 
-    // check if new level has a lot diff more than 10% then use old level
+    // Filter out the noise
     if (level != -1 && abs(level - levelData->level) > 10)
     {
         levelData->level = level;
+        levelData->distance = levelData->distance * -1;
     }
     else
     {
