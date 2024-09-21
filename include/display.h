@@ -16,6 +16,7 @@ private:
     bool dispalyInitialized;
     unsigned long lastDisplayIpTime = 0;
     unsigned int displayIp = 1;
+    unsigned long levelDisplayStartMillis = -1;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -51,11 +52,22 @@ public:
             return;
         }
 
+        if (levelDisplayStartMillis == -1)
+        {
+            levelDisplayStartMillis = millis();
+        }
+
         int levelStartCursor = 15;
+        int levelCursorSize = 5;
 
         if (level == 100)
         {
             levelStartCursor = 5;
+        }
+
+        if (canPrintIp())
+        {
+            levelCursorSize = 4;
         }
 
         display.clearDisplay();
@@ -69,12 +81,24 @@ public:
         display.println("-------------------");
 
         display.setCursor(levelStartCursor, 20);
-        display.setTextSize(4);
+        display.setTextSize(levelCursorSize);
         display.print(level);
         display.println('%');
 
         display.setCursor(0, 55);
         display.setTextSize(1);
+
+        printIp();
+
+        display.display();
+    }
+
+    void printIp()
+    {
+        if (!canPrintIp())
+        {
+            return;
+        }
 
         if (millis() - lastDisplayIpTime > 5000)
         {
@@ -113,8 +137,16 @@ public:
         }
 
         display.println(ipMessage);
+    }
 
-        display.display();
+    bool canPrintIp()
+    {
+        if (millis() - levelDisplayStartMillis > (60 * 1000))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     void displayText(String text, bool clear = true)

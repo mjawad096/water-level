@@ -10,6 +10,8 @@
         "atomic": "cpp",
         "new": "cpp",
         "cmath": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "*.tcc": "cpp",
+        "string": "cpp"
     }
 }

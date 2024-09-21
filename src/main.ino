@@ -14,13 +14,17 @@ void setup()
     Serial.begin(115200);
 
     display.setup();
+    buzzer.setup();
+    led.setup();
+
+    led.on();
 
     display.displayText("Water Level Monitor.");
     display.displayText("Initializing...", false);
 
     espNow.setup(&display);
-    buzzer.setup();
-    led.setup();
+
+    led.off();
 }
 
 void loop()
@@ -37,7 +41,7 @@ void loop()
     {
         led.blinkFor(1500);
 
-        if (espNow.waterLevel < 5)
+        if (espNow.waterLevel != -1 && espNow.waterLevel < 5)
         {
             buzzer.start(2, 60000, 400); // Beep for 1 minute with 400ms cycle
         }

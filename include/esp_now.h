@@ -51,5 +51,5 @@ public:
     }
 };
 
-int EspNow::waterLevel = 0;
+int EspNow::waterLevel = -1;
 unsigned long EspNow::lastUpdatedMillis = 0;

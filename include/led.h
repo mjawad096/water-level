@@ -27,6 +27,16 @@ public:
         digitalWrite(ledPin, OFF);
     }
 
+    void on()
+    {
+        digitalWrite(ledPin, ON);
+    }
+
+    void off()
+    {
+        digitalWrite(ledPin, OFF);
+    }
+
     void blinkFor(unsigned long interval)
     {
         blinkInterval = interval;
@@ -40,14 +50,14 @@ public:
         ledState = false;
         blinking = true;
 
-        digitalWrite(ledPin, OFF);
+        off();
     }
 
     void stop()
     {
         blinking = false;
 
-        digitalWrite(ledPin, OFF);
+        off();
     }
 
     void blink()
@@ -61,7 +71,7 @@ public:
         {
             ledState = !ledState;
 
-            digitalWrite(ledPin, ledState ? HIGH : LOW);
+            ledState ? on() : off();
 
             lastToggleTime = millis();
         }
