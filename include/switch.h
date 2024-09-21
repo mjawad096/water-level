@@ -43,6 +43,8 @@ public:
         if (manualSwitchRequested != -1)
         {
             sendSwitchState(manualSwitchRequested ? true : false);
+
+            manualSwitchRequested = -1;
         }
         else
         {
@@ -70,7 +72,6 @@ public:
         if (manualSwitchRequested != -1)
         {
             Serial.println("Manual switch requested: " + String(manualSwitchRequested));
-            manualSwitchRequested = -1;
             return;
         }
 

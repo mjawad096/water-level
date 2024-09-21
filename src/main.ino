@@ -15,6 +15,8 @@ Setting settings;
 Switch rfSwitch;
 WebServer webServer;
 
+int level = -1;
+
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -56,6 +58,16 @@ void processWaterLevel(WaterLevelData *levelData)
     {
         Serial.println("Error: Null water level data received.");
         return;
+    }
+
+    // check if new level has a lot diff more than 10% then use old level
+    if (level != -1 && abs(level - levelData->level) > 10)
+    {
+        levelData->level = level;
+    }
+    else
+    {
+        level = levelData->level;
     }
 
     webServer.setWaterLevel(levelData);
