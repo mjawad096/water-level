@@ -7,7 +7,7 @@ class Distance
 private:
     const int echoPin = D1;
     const int trigPin = D2;
-    const double speedOfSound = 0.0343;
+    const double speedOfSound = 0.0343; // Speed of sound in cm/us
 
 public:
     void setup()
@@ -16,39 +16,36 @@ public:
         pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
     }
 
-    double readDistance()
+    unsigned long getDuration()
     {
         digitalWrite(trigPin, LOW);
-        delay(100);
+        delayMicroseconds(2);
+
         digitalWrite(trigPin, HIGH);
-        delayMicroseconds(30);
+        delayMicroseconds(10);
+
         digitalWrite(trigPin, LOW);
 
-        long duration = pulseIn(echoPin, HIGH);
+        return pulseIn(echoPin, HIGH);
+    }
 
-        return duration * speedOfSound / 2; // cm
+    double getBestDuration()
+    {
+        double durationSum = 0;
+        int nb_measurements = 10;
+
+        for (int i = 0; i < nb_measurements; i++)
+        {
+            durationSum += getDuration();
+        }
+
+        return durationSum / nb_measurements;
     }
 
     double getBestDistance()
     {
-        double distance;
-        double maxDistance = 0;
+        double duration = getBestDuration();
 
-        for (int i = 0; i < 3; i++)
-        {
-            distance = readDistance();
-
-            Serial.print("Distance: ");
-            Serial.println(distance);
-
-            delay(1000);
-
-            if (distance > maxDistance)
-            {
-                maxDistance = distance;
-            }
-        }
-
-        return maxDistance;
+        return (duration / 2.0) * speedOfSound;
     }
 };
