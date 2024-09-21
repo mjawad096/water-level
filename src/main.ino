@@ -6,8 +6,9 @@ EspNow espNow;
 Distance distance;
 
 unsigned long lastSendTime = 0;
-unsigned long ledBlinkTime = 0;
-bool ledState = false;
+
+const int LED_OFF = HIGH;
+const int LED_ON = LOW;
 
 void setup()
 {
@@ -18,29 +19,29 @@ void setup()
     espNow.setup();
     distance.setup();
 
-    pinMode(LED_BUILTIN, LOW);
+    digitalWrite(LED_BUILTIN, LED_OFF);
 }
 
 void loop()
 {
-    if (millis() - lastSendTime >= 5000)
+    if (millis() - lastSendTime >= 2000)
     {
+        digitalWrite(LED_BUILTIN, LED_ON);
+
+        unsigned long readStart = millis();
+
         double distanceValue = distance.getBestDistance();
+
+        Serial.print("Sensor Time:");
+        Serial.println((millis() - readStart) / 1000);
+
         espNow.sendDistance(distanceValue);
 
         Serial.print("Distance sent: ");
         Serial.println(distanceValue);
 
         lastSendTime = millis();
-        ledBlinkTime = millis();
 
-        ledState = true;
-        digitalWrite(LED_BUILTIN, HIGH);
-    }
-
-    if (ledState && millis() - ledBlinkTime >= 500)
-    {
-        digitalWrite(LED_BUILTIN, LOW);
-        ledState = false;
+        digitalWrite(LED_BUILTIN, LED_OFF);
     }
 }

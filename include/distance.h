@@ -8,7 +8,7 @@ private:
     const int echoPin = D1;
     const int trigPin = D2;
     const double speedOfSound = 0.0343; // Speed of sound in cm/us
-    const int nb_measurements = 20;
+    const int nb_measurements = 10;
 
 public:
     void
