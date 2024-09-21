@@ -32,6 +32,7 @@ private:
 
 public:
     static double deviceToWaterDistance;
+    static unsigned long lastUpdatedMillis;
 
     void setup(Setting *settings)
     {
@@ -62,6 +63,14 @@ public:
 
         return WaterLevelData(level, WaterLevel::deviceToWaterDistance);
     }
+
+    static bool isLastUpdatedMoreThan(unsigned long minutes);
 };
 
 double WaterLevel::deviceToWaterDistance = 0;
+unsigned long WaterLevel::lastUpdatedMillis = 0;
+
+bool WaterLevel::isLastUpdatedMoreThan(unsigned long minutes)
+{
+    return (millis() - lastUpdatedMillis) > (minutes * 60 * 1000);
+}

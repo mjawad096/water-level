@@ -95,6 +95,8 @@ public:
         {
             memcpy(&WaterLevel::deviceToWaterDistance, incomingData, sizeof(WaterLevel::deviceToWaterDistance));
 
+            WaterLevel::lastReceivedMillis = millis();
+
             Serial.print("Distance received: ");
             Serial.println(WaterLevel::deviceToWaterDistance);
         }

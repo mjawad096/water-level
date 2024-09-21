@@ -61,7 +61,7 @@ void processWaterLevel(WaterLevelData *levelData)
     }
 
     // Filter out the noise
-    if (level != -1 && abs(level - levelData->level) > 10)
+    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) > 10)
     {
         levelData->level = level;
         levelData->distance = levelData->distance * -1;
