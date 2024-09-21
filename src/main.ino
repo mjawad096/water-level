@@ -24,7 +24,7 @@ void setup()
 
 void loop()
 {
-    if (millis() - lastSendTime >= 2000)
+    if (millis() - lastSendTime >= 3000)
     {
         digitalWrite(LED_BUILTIN, LED_ON);
 

@@ -8,23 +8,22 @@ private:
     const int echoPin = D1;
     const int trigPin = D2;
     const double speedOfSound = 0.0343; // Speed of sound in cm/us
-    const int nb_measurements = 10;
 
 public:
     void
     setup()
     {
-        pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
-        pinMode(echoPin, INPUT);  // Sets the echoPin as an Input
+        pinMode(trigPin, OUTPUT);
+        pinMode(echoPin, INPUT);
     }
 
     unsigned long getDuration()
     {
         digitalWrite(trigPin, LOW);
-        delayMicroseconds(2);
+        delay(100);
 
         digitalWrite(trigPin, HIGH);
-        delayMicroseconds(10);
+        delayMicroseconds(30);
 
         digitalWrite(trigPin, LOW);
 
@@ -33,14 +32,28 @@ public:
 
     double getBestDuration()
     {
-        double durationSum = 0;
+        double duration;
+        double maxDuration = 0;
 
-        for (int i = 0; i < nb_measurements; i++)
+        for (int i = 0; i < 3; i++)
         {
-            durationSum += getDuration();
+            duration = getDuration();
+
+            Serial.print("Duration: ");
+            Serial.println(duration);
+
+            if (duration > maxDuration)
+            {
+                maxDuration = duration;
+            }
+
+            if (i < 2)
+            {
+                delay(1000);
+            }
         }
 
-        return durationSum / nb_measurements;
+        return maxDuration;
     }
 
     double getBestDistance()
