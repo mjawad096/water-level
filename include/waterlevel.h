@@ -41,6 +41,11 @@ public:
 
     WaterLevelData getLevel()
     {
+        if (deviceToWaterDistance == -1)
+        {
+            return WaterLevelData(-1, deviceToWaterDistance);
+        }
+
         double topEndDistanceFromDevice = settings->topEndFromDevice;
         double bottomEndDistanceFromDevice = settings->bottomEndFromDevice;
 
@@ -67,7 +72,7 @@ public:
     static bool isLastUpdatedMoreThan(unsigned long minutes);
 };
 
-double WaterLevel::deviceToWaterDistance = 0;
+double WaterLevel::deviceToWaterDistance = -1;
 unsigned long WaterLevel::lastUpdatedMillis = 0;
 
 bool WaterLevel::isLastUpdatedMoreThan(unsigned long minutes)
