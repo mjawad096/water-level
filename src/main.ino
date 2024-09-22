@@ -45,6 +45,8 @@ void loop()
 
     reset.checkForReset();
 
+    espNow.checkWifiConnection();
+
     WaterLevelData levelData = waterLevel.getLevel();
 
     processWaterLevel(&levelData);
@@ -61,7 +63,7 @@ void processWaterLevel(WaterLevelData *levelData)
     }
 
     // Filter out the noise
-    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) > 10)
+    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) >= 5)
     {
         levelData->level = level;
         levelData->distance = levelData->distance * -1;
@@ -78,6 +80,8 @@ void processWaterLevel(WaterLevelData *levelData)
     display.displayLevel(levelData);
 
     rfSwitch.handleSwitchState(levelData);
+
+    webServer.sendLastSwitchState();
 
     Serial.print("Level: ");
     Serial.print(levelData->level);

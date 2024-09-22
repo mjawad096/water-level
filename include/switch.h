@@ -21,6 +21,8 @@ private:
     int manualSwitchRequested = -1;
 
 public:
+    int lastSentState[2] = {-1, -1};
+
     void setup(Setting *settings)
     {
         this->settings = settings;
@@ -60,6 +62,9 @@ public:
         int data = state ? 5557608 : 15859236;
 
         Serial.println(state ? "Switching on." : "Switching off.");
+
+        lastSentState[0] = state ? 1 : 0;
+        lastSentState[1] = manualSwitchRequested != -1 ? 1 : 0;
 
         mySwitch.send(data, 24);
         delay(2000);
@@ -113,6 +118,12 @@ public:
         sendSwitchState(false);
 
         stopStateSentForLevel = level;
+    }
+
+    void resetLastSentState()
+    {
+        lastSentState[0] = -1;
+        lastSentState[1] = -1;
     }
 
     void manualStart()

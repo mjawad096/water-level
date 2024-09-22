@@ -10,6 +10,9 @@ private:
     Setting *settings;
     Display *display;
 
+    unsigned long previousMillis = 0;
+    const unsigned long interval = 300000;
+
 public:
     WifiConnect()
     {
@@ -54,6 +57,25 @@ public:
         return String("WL_") + String(hexString);
     }
 
+    void checkWifiConnection()
+    {
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            return;
+        }
+
+        unsigned long currentMillis = millis();
+
+        if (currentMillis - previousMillis >= interval)
+        {
+            display->displayText("Wifi connection lost. Reconnecting...");
+
+            previousMillis = currentMillis;
+
+            connectWifi();
+        }
+    }
+
     void connectWifi()
     {
         Serial.print("Connecting to WiFi: ");
@@ -64,28 +86,22 @@ public:
         WiFi.begin(settings->wifiSSID, settings->wifiPassword);
 
         int maxAttempts = 30;
-
-        for (int i = 0; i < maxAttempts; i++)
+        int attempt = 0;
+        while (WiFi.status() != WL_CONNECTED && attempt < maxAttempts)
         {
-            if (WiFi.status() == WL_CONNECTED)
-            {
-                break;
-            }
-
-            delay(1000);
+            delay(500);
             Serial.print(".");
+            attempt++;
         }
 
-        Serial.println("");
-
-        // Wait for connection
-        if (WiFi.status() != WL_CONNECTED)
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            Serial.println("Connected to WiFi");
+        }
+        else
         {
             Serial.println("Failed to connect to WiFi");
-            return;
         }
-
-        Serial.println("Connected to WiFi");
 
         display->displayText("Connected to WiFi", false);
 
