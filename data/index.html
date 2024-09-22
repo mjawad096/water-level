@@ -23,7 +23,7 @@
           class="flex flex-row gap-10 shadow-md rounded-lg p-8 w-full bg-slate-200 dark:bg-slate-800 m-5 text-gray-700 dark:text-gray-200 main-card"
           x-cloak
         >
-          <div class="status">
+          <div class="status" x-show="connected">
             <h2 class="text-2xl font-semibold mb-6 text-center">Water Level</h2>
             <div class="status-card">
               <div class="box">
@@ -45,38 +45,64 @@
               </div>
               <div class="box">
                 <div>
+                  Wifi:
+                  <span
+                    x-text="wifiStatus ? 'Connected': 'Not Connected'"
+                  ></span>
+                </div>
+              </div>             
+
+              <div class="box">
+                <div>
                   Distance: <span x-text="deviceToWaterDistance"></span>
                 </div>
               </div>
+
+              <template x-for="(switchState, index) in switchStates" :key="index">
+                <div class="box">
+                  <div>
+                    Switch State:  <span x-text="switchState.state"></span><br>
+                    Is Manual: <span x-text="switchState.isManual ? 'YES' : 'NO'"></span><br>
+                    Time: <span><span x-text="switchState.time"></span>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
           <div class="settings">
-            <h2 class="text-2xl font-semibold mb-6 text-center">
-              Connect Settings
+            <h2
+              class="text-2xl font-semibold mb-6 text-center"
+              x-show="connected"
+            >
+              Settings (
+              <a
+                href="#"
+                @click.prevent="showSettings = !showSettings"
+                x-text="showSettings ? 'Hide' : 'Show'"
+              ></a>
+              )
             </h2>
-            <form x-show="connected">
+            <form x-show="connected && showSettings">
               <div class="mb-4">
                 <div class="">
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                    for="name"
                   >
                     Wifi SSID
-                  </label>
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                    id="name"
                     type="text"
                     x-model="settings_form.wifi_ssid"
                     autofocus="autofocus"
                   />
+
+                  </label>
                 </div>
               </div>
               <div class="mb-4">
                 <div class="">
                   <label
                     class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                    for="name"
                   >
                     Wifi Password (
                     <a
@@ -85,7 +111,6 @@
                       x-text="showWifiPass ? 'Hide' : 'Show'"
                     ></a>
                     )
-                  </label>
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                     id="name"
@@ -93,6 +118,8 @@
                     x-model="settings_form.wifi_password"
                     autofocus="autofocus"
                   />
+
+                  </label>
                 </div>
               </div>
 
@@ -274,9 +301,13 @@
           endpoint: "http://192.168.4.1",
 
           showWifiPass: false,
+          showSettings: false,
+          wifiStatus: false,
 
           waterLevel: 0,
           deviceToWaterDistance: 0,
+
+          switchStates: [],
 
           settings_form: {
             wifi_ssid: "",
@@ -338,6 +369,12 @@
                 false
               );
 
+              source.addEventListener("wifi_status", (e) => {
+                let data = JSON.parse(e.data);
+
+                this.wifiStatus = data.status ? true : false;
+              });
+
               source.addEventListener(
                 "water_level_data",
                 (e) => {
@@ -345,6 +382,20 @@
 
                   this.waterLevel = data.level;
                   this.deviceToWaterDistance = data.distance;
+                },
+                false
+              );
+
+              source.addEventListener(
+                "switch_state",
+                (e) => {
+                  let data = JSON.parse(e.data);
+
+                  this.switchStates.push({
+                    state: data.state,
+                    isManual: data.isManual,
+                    time: new Date().toLocaleString(),
+                  });
                 },
                 false
               );

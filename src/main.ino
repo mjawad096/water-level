@@ -51,6 +51,8 @@ void loop()
 
     processWaterLevel(&levelData);
 
+    websServer.sendWifiStatus();
+
     delay(settings.durationForPing * 1000);
 }
 

@@ -19,14 +19,16 @@
 class WebServer
 {
 private:
-  bool rebootDevice = false;
-  int waterLevel = 0;
-
   AsyncWebServer *server;
   AsyncEventSource *events;
   Setting *settings;
   Switch *rfSwitch;
   AsyncCallbackJsonWebHandler *saveSettingsHandler;
+
+  bool rebootDevice = false;
+  int waterLevel = 0;
+  unsigned long lastWifiStatusSent = 0;
+  unsigned long wifiStatusInterval = 15000;
 
 public:
   WebServer()
@@ -200,6 +202,25 @@ public:
       delay(500);
       ESP.restart();
     }
+  }
+  void sendWifiStatus()
+  {
+    if (millis() - lastWifiStatusSent < wifiStatusInterval)
+    {
+      return;
+    }
+
+    lastWifiStatusSent = millis();
+
+    int bufferSize = 20;
+    char *buffer = new char[bufferSize];
+
+    // Format the data into the allocated buffer
+    snprintf(buffer, bufferSize, "{\"status\": %d}\n\n", WiFi.status() == WL_CONNECTED);
+
+    events->send(buffer, "wifi_status", millis());
+
+    delete[] buffer;
   }
 
   void setWaterLevel(WaterLevelData *levelData)
