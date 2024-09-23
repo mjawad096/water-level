@@ -29,7 +29,7 @@ public:
 
         mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
 
-        mySwitch.setRepeatTransmit(15);
+        mySwitch.setRepeatTransmit(20);
     }
 
     void handleSwitchState(WaterLevelData *levelData)
