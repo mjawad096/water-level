@@ -33,6 +33,10 @@
     gap: 10px;
 }
 
+.box.flex-row {
+    flex-flow: row !important;
+}
+
 .status-card {
     display: flex;
     flex-flow: column;
