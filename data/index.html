@@ -61,8 +61,9 @@
               <template x-for="(switchState, index) in switchStates" :key="index">
                 <div class="box">
                   <div>
-                    Switch State:  <span x-text="switchState.state"></span><br>
+                    Switch State:  <span x-text="switchState.state ? 'ON' : 'OFF'"></span><br>
                     Is Manual: <span x-text="switchState.isManual ? 'YES' : 'NO'"></span><br>
+                    Level: <span><span x-text="switchState.level"></span>
                     Time: <span><span x-text="switchState.time"></span>
                   </div>
                 </div>
@@ -391,10 +392,11 @@
                 (e) => {
                   let data = JSON.parse(e.data);
 
-                  this.switchStates.push({
+                  this.switchStates.unshift({
                     state: data.state,
                     isManual: data.isManual,
                     time: new Date().toLocaleString(),
+                    level: this.waterLevel,
                   });
                 },
                 false
