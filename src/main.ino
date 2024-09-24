@@ -17,6 +17,8 @@ WebServer webServer;
 
 int level = -1;
 
+unsigned int continueInvalidLevelCount = 0;
+
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -65,14 +67,18 @@ void processWaterLevel(WaterLevelData *levelData)
     }
 
     // Filter out the noise
-    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) >= 5)
+    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) >= 5 && continueInvalidLevelCount < 5)
     {
         levelData->level = level;
         levelData->distance = levelData->distance * -1;
+
+        continueInvalidLevelCount++;
     }
     else
     {
         level = levelData->level;
+
+        continueInvalidLevelCount = 0;
     }
 
     webServer.setWaterLevel(levelData);
