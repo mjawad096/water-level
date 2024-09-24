@@ -32,10 +32,10 @@ void loop()
     buzzer.update();
     led.blink();
 
-    if (espNow.isLastUpdatedMoreThan(5))
+    if (espNow.isLastUpdatedMoreThan(3))
     {
         led.blinkFor(100);
-        buzzer.start(1, 60000); // Continue beeping for 1 minute
+        // buzzer.start(1, 60000); // Continue beeping for 1 minute
     }
     else
     {
