@@ -19,6 +19,8 @@ int level = -1;
 
 unsigned int continueInvalidLevelCount = 0;
 
+unsigned long lastPingTime = 0;
+
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
@@ -41,6 +43,7 @@ void setup()
 
 void loop()
 {
+
     // Serial.println(settings.toString());
 
     webServer.checkForReboot();
@@ -49,13 +52,18 @@ void loop()
 
     espNow.checkWifiConnection();
 
+    webServer.sendWifiStatus();
+
+    if (millis() - lastPingTime < settings.durationForPing * 1000)
+    {
+        return;
+    }
+
+    lastPingTime = millis();
+
     WaterLevelData levelData = waterLevel.getLevel();
 
     processWaterLevel(&levelData);
-
-    webServer.sendWifiStatus();
-
-    delay(settings.durationForPing * 1000);
 }
 
 void processWaterLevel(WaterLevelData *levelData)

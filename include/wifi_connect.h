@@ -59,12 +59,14 @@ public:
 
     void checkWifiConnection()
     {
+        unsigned long currentMillis = millis();
+
         if (WiFi.status() == WL_CONNECTED)
         {
+            previousMillis = currentMillis;
+
             return;
         }
-
-        unsigned long currentMillis = millis();
 
         if (currentMillis - previousMillis >= interval)
         {
@@ -78,6 +80,11 @@ public:
 
     void connectWifi()
     {
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            return;
+        }
+
         Serial.print("Connecting to WiFi: ");
         Serial.println(settings->wifiSSID);
 
