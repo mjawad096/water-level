@@ -1,6 +1,7 @@
 #include "WiFi.h"
 #include "setting.h"
 #include "display.h"
+#include "led.h"
 
 #pragma once
 
@@ -9,6 +10,7 @@ class WifiConnect
 private:
     Setting *settings;
     Display *display;
+    Led *led;
 
     unsigned long previousMillis = 0;
     const unsigned long interval = 300000;
@@ -18,10 +20,11 @@ public:
     {
     }
 
-    void setup(Setting *settings, Display *display)
+    void setup(Setting *settings, Display *display, Led *led)
     {
         this->settings = settings;
         this->display = display;
+        this->led = led;
 
         WiFi.mode(WIFI_AP_STA);
 
@@ -90,6 +93,8 @@ public:
 
         display->displayText("Connecting to WiFi...", false);
 
+        led->on();
+
         WiFi.begin(settings->wifiSSID, settings->wifiPassword);
 
         int maxAttempts = 30;
@@ -113,5 +118,7 @@ public:
         display->displayText("Connected to WiFi", false);
 
         delay(2000);
+
+        led->off();
     }
 };

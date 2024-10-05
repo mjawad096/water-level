@@ -1,6 +1,7 @@
 #include <setting.h>
 #include <waterlevel.h>
 #include "current_sensor.h"
+#include "buzzer.h"
 
 #pragma once
 
@@ -9,6 +10,7 @@ class Switch
 private:
     Setting *settings;
     CurrentSensor *currentSensor;
+    Buzzer *buzzer;
 
     int internalPinState = LOW;
 
@@ -25,10 +27,11 @@ private:
 public:
     static RTC_DATA_ATTR int externalPinState;
 
-    void setup(Setting *settings, CurrentSensor *currentSensor)
+    void setup(Setting *settings, CurrentSensor *currentSensor, Buzzer *buzzer)
     {
         this->settings = settings;
         this->currentSensor = currentSensor;
+        this->buzzer = buzzer;
 
         pinMode(externalPin, OUTPUT);
         pinMode(internalPin, INPUT_PULLUP);
@@ -58,6 +61,8 @@ public:
     {
         if (state != currentSensor->isCurrentFlowing())
         {
+            buzzer->start(1, 300);
+
             int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
 
             digitalWrite(externalPin, newExternalPinState);
