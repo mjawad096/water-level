@@ -32,6 +32,16 @@ public:
         digitalWrite(ledPin, ON);
     }
 
+    void on(bool stop)
+    {
+        if (stop)
+        {
+            this->stop();
+        }
+
+        on();
+    }
+
     void off()
     {
         digitalWrite(ledPin, OFF);

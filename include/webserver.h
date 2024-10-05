@@ -22,7 +22,8 @@ private:
   AsyncWebServer *server;
   AsyncEventSource *events;
   Setting *settings;
-  Switch *rfSwitch;
+  Switch *mySwitch;
+  CurrentSensor *currentSensor;
   AsyncCallbackJsonWebHandler *saveSettingsHandler;
 
   bool rebootDevice = false;
@@ -44,10 +45,11 @@ public:
     delete saveSettingsHandler;
   }
 
-  void setup(Setting *settings, Switch *rfSwitch)
+  void setup(Setting *settings, CurrentSensor *currentSensor, Switch *mySwitch)
   {
     this->settings = settings;
-    this->rfSwitch = rfSwitch;
+    this->currentSensor = currentSensor;
+    this->mySwitch = mySwitch;
 
     if (!LittleFS.begin())
     {
@@ -160,9 +162,15 @@ public:
         HTTP_POST,
         [this](AsyncWebServerRequest *request)
         {
-          sendApiResponse(request, 200, "Switching on.");
+          bool isCurrentFlowing = currentSensor->isCurrentFlowing();
+          String message = isCurrentFlowing ? "Pump is already ON." : "Switching ON.";
 
-          rfSwitch->manualStart();
+          sendApiResponse(request, 200, message);
+
+          if (!isCurrentFlowing)
+          {
+            mySwitch->manualStart();
+          }
         });
 
     server->on(
@@ -170,9 +178,15 @@ public:
         HTTP_POST,
         [this](AsyncWebServerRequest *request)
         {
-          sendApiResponse(request, 200, "Switching off.");
+          bool isCurrentFlowing = currentSensor->isCurrentFlowing();
+          String message = !isCurrentFlowing ? "Pump is already OFF." : "Switching OFF.";
 
-          rfSwitch->manualStop();
+          sendApiResponse(request, 200, message);
+
+          if (isCurrentFlowing)
+          {
+            mySwitch->manualStop();
+          }
         });
   }
 

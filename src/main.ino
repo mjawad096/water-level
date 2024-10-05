@@ -43,10 +43,11 @@ void setup()
 
     espNow.setup(&settings, &display, &led);
     reset.setup(&settings);
-    waterLevel.setup(&settings);
+    waterLevel.setup(&settings, &currentSensor);
 
     mySwitch.setup(&settings, &currentSensor, &buzzer);
-    webServer.setup(&settings, &mySwitch);
+
+    webServer.setup(&settings, &currentSensor, &mySwitch);
 }
 
 void loop()
@@ -68,13 +69,22 @@ void loop()
 
     if ((level < settings.emptyThreshold && !currentSensor.isCurrentFlowing()) || (level > settings.fullThreshold && currentSensor.isCurrentFlowing()))
     {
-        buzzer.start(2, 60000, 100);
+        buzzer.start(2, 60000, 400);
         led.blinkFor(100);
     }
     else
     {
         buzzer.stop(true);
-        led.stop();
+
+        if (currentSensor.isCurrentFlowing())
+        {
+            led.on(true);
+        }
+        else
+        {
+
+            led.blinkFor(1500);
+        }
     }
 
     if (millis() - lastPingTime < settings.durationForPing * 1000)
