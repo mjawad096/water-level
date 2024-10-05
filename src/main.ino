@@ -5,6 +5,7 @@
 #include "switch.h"
 #include "waterlevel.h"
 #include "webserver.h"
+#include "current_sensor.h"
 
 Display display;
 EspNow espNow;
@@ -12,8 +13,9 @@ Reset reset;
 WaterLevel waterLevel;
 
 Setting settings;
-Switch rfSwitch;
+Switch mySwitch;
 WebServer webServer;
+CurrentSensor currentSensor;
 
 int level = -1;
 
@@ -37,14 +39,16 @@ void setup()
     reset.setup(&settings);
     waterLevel.setup(&settings);
 
-    rfSwitch.setup(&settings);
-    webServer.setup(&settings, &rfSwitch);
+    mySwitch.setup(&settings, &currentSensor);
+    webServer.setup(&settings, &mySwitch);
 }
 
 void loop()
 {
 
     // Serial.println(settings.toString());
+
+    currentSensor.readCurrent();
 
     webServer.checkForReboot();
 
@@ -75,7 +79,7 @@ void processWaterLevel(WaterLevelData *levelData)
     }
 
     // Filter out the noise
-    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData->level) >= 5 && continueInvalidLevelCount < 5)
+    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && (level - levelData->level) >= 4 && continueInvalidLevelCount < 5)
     {
         levelData->level = level;
         levelData->distance = levelData->distance * -1;
@@ -95,9 +99,7 @@ void processWaterLevel(WaterLevelData *levelData)
 
     display.displayLevel(levelData);
 
-    rfSwitch.handleSwitchState(levelData);
-
-    webServer.sendLastSwitchState();
+    mySwitch.handleSwitchState(levelData);
 
     Serial.print("Level: ");
     Serial.print(levelData->level);

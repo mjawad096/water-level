@@ -1,35 +1,83 @@
-#include <RCSwitch.h>
 #include <setting.h>
 #include <waterlevel.h>
+#include "current_sensor.h"
 
 #pragma once
 
 class Switch
 {
 private:
-    RCSwitch mySwitch;
     Setting *settings;
+    CurrentSensor *currentSensor;
 
-    int rfSwitchPin = GPIO_NUM_27;
+    int internalPinState = LOW;
+
+    const int externalPin = GPIO_NUM_27;
+    const int internalPin = GPIO_NUM_32;
 
     long lastSentOnTime = 0;
-
-    int previousLevel = 0;
-    bool isDecreasing = false;
-    int stopStateSentForLevel = -1;
+    long lastSentOffTime = 0;
 
     int manualSwitchRequested = -1;
 
-public:
-    int lastSentState[2] = {-1, -1};
+    static Switch *instance;
 
-    void setup(Setting *settings)
+public:
+    static RTC_DATA_ATTR int externalPinState;
+
+    void setup(Setting *settings, CurrentSensor *currentSensor)
     {
         this->settings = settings;
+        this->currentSensor = currentSensor;
 
-        mySwitch.enableTransmit(gpioNumberToDigitalPin(rfSwitchPin));
+        pinMode(externalPin, OUTPUT);
+        pinMode(internalPin, INPUT_PULLUP);
 
-        mySwitch.setRepeatTransmit(20);
+        internalPinState = digitalRead(internalPin);
+        digitalWrite(externalPin, externalPinState);
+
+        instance = this;
+
+        attachInterrupt(internalPin, handleInternalSwitchChange, CHANGE);
+    }
+
+    static void handleInternalSwitchChange()
+    {
+        int internalPinState = digitalRead(instance->internalPin);
+
+        if (internalPinState == instance->internalPinState)
+        {
+            return;
+        }
+
+        instance->internalPinState = internalPinState;
+        instance->changeSwitchState(!instance->currentSensor->isCurrentFlowing());
+    }
+
+    void changeSwitchState(bool state)
+    {
+        if (state != currentSensor->isCurrentFlowing())
+        {
+            int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
+
+            digitalWrite(externalPin, newExternalPinState);
+
+            externalPinState = newExternalPinState;
+
+            if (state)
+            {
+                lastSentOnTime = millis();
+            }
+            else
+            {
+                lastSentOffTime = millis();
+            }
+        }
+
+        if (manualSwitchRequested != -1)
+        {
+            return;
+        }
     }
 
     void handleSwitchState(WaterLevelData *levelData)
@@ -40,11 +88,9 @@ public:
             return;
         }
 
-        isDecreasing = levelData->level < previousLevel;
-
         if (manualSwitchRequested != -1)
         {
-            sendSwitchState(manualSwitchRequested ? true : false);
+            changeSwitchState(manualSwitchRequested ? true : false);
 
             manualSwitchRequested = -1;
         }
@@ -52,37 +98,6 @@ public:
         {
             checkForOpenState(levelData->level);
             checkForCloseState(levelData->level);
-        }
-
-        previousLevel = levelData->level;
-    }
-
-    void sendSwitchState(bool state)
-    {
-        int data = state ? 5557608 : 15859236;
-
-        Serial.println(state ? "Switching on." : "Switching off.");
-
-        lastSentState[0] = state ? 1 : 0;
-        lastSentState[1] = manualSwitchRequested != -1 ? 1 : 0;
-
-        mySwitch.send(data, 24);
-        delay(2000);
-
-        mySwitch.send(data, 24);
-        delay(2000);
-
-        mySwitch.send(data, 24);
-
-        if (manualSwitchRequested != -1)
-        {
-            Serial.println("Manual switch requested: " + String(manualSwitchRequested));
-            return;
-        }
-
-        if (state)
-        {
-            lastSentOnTime = millis();
         }
     }
 
@@ -98,32 +113,22 @@ public:
             return;
         }
 
-        sendSwitchState(true);
+        changeSwitchState(true);
     }
 
     void checkForCloseState(int level)
     {
-        if (!settings->autoOffOnFull || level < settings->fullThreshold || isDecreasing)
-        {
-            stopStateSentForLevel = -1;
-
-            return;
-        }
-
-        if (stopStateSentForLevel == level)
+        if (!settings->autoOffOnFull || level < settings->fullThreshold)
         {
             return;
         }
 
-        sendSwitchState(false);
+        if (millis() - lastSentOffTime < (settings->delayStopSwitch * 1000))
+        {
+            return;
+        }
 
-        stopStateSentForLevel = level;
-    }
-
-    void resetLastSentState()
-    {
-        lastSentState[0] = -1;
-        lastSentState[1] = -1;
+        changeSwitchState(false);
     }
 
     void manualStart()
@@ -136,3 +141,6 @@ public:
         manualSwitchRequested = 0;
     }
 };
+
+Switch *Switch::instance = nullptr;
+RTC_DATA_ATTR int Switch::externalPinState = LOW;

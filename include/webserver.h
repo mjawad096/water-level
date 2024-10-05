@@ -244,22 +244,4 @@ public:
 
     delete[] dataChars;
   }
-
-  void sendLastSwitchState()
-  {
-    if (rfSwitch->lastSentState[0] != -1)
-    {
-      int bufferSize = 30;
-      char *buffer = new char[bufferSize];
-
-      // Format the data into the allocated buffer
-      snprintf(buffer, bufferSize, "{\"state\": %d, \"isManual\": %d}\n\n", rfSwitch->lastSentState[0], rfSwitch->lastSentState[1]);
-
-      events->send(buffer, "switch_state", millis());
-
-      rfSwitch->resetLastSentState();
-
-      delete[] buffer;
-    }
-  }
 };

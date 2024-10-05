@@ -17,6 +17,7 @@ public:
     long topEndFromDevice = 0;
     long bottomEndFromDevice = 250;
     long delayStartSwitch = 10; // seconds
+    long delayStopSwitch = 10;  // second
     long fullThreshold = 99;
     long emptyThreshold = 5;
     bool autoOffOnFull = false;
@@ -37,6 +38,7 @@ public:
         topEndFromDevice = preferences.getLong("topFromDevice", 0);
         bottomEndFromDevice = preferences.getLong("btmFromDevice", 250);
         delayStartSwitch = preferences.getLong("delayStartSwtch", 10);
+        delayStopSwitch = preferences.getLong("delayStopSwtch", 10);
         fullThreshold = preferences.getLong("fullThreshold", 99);
         emptyThreshold = preferences.getLong("emptyThreshold", 5);
         autoOffOnFull = preferences.getBool("autoOffOnFull", false);
@@ -62,6 +64,7 @@ public:
         topEndFromDevice = obj["topEndFromDevice"].as<long>();
         bottomEndFromDevice = obj["bottomEndFromDevice"].as<long>();
         delayStartSwitch = obj["delayStartSwitch"].as<long>();
+        delayStopSwitch = obj["delayStopSwitch"].as<long>();
         fullThreshold = obj["fullThreshold"].as<long>();
         emptyThreshold = obj["emptyThreshold"].as<long>();
         autoOffOnFull = obj["autoOffOnFull"].as<bool>();
@@ -84,6 +87,7 @@ public:
         preferences.putLong("topFromDevice", topEndFromDevice);
         preferences.putLong("btmFromDevice", bottomEndFromDevice);
         preferences.putLong("delayStartSwtch", delayStartSwitch);
+        preferences.putLong("delayStopSwtch", delayStopSwitch);
         preferences.putLong("fullThreshold", fullThreshold);
         preferences.putLong("emptyThreshold", emptyThreshold);
         preferences.putBool("autoOffOnFull", autoOffOnFull);
@@ -101,6 +105,7 @@ public:
         topEndFromDevice = 0;
         bottomEndFromDevice = 250;
         delayStartSwitch = 10;
+        delayStopSwitch = 10;
         fullThreshold = 99;
         emptyThreshold = 5;
         autoOffOnFull = false;
@@ -122,6 +127,7 @@ public:
         doc["topEndFromDevice"] = topEndFromDevice;
         doc["bottomEndFromDevice"] = bottomEndFromDevice;
         doc["delayStartSwitch"] = delayStartSwitch;
+        doc["delayStopSwitch"] = delayStopSwitch;
         doc["fullThreshold"] = fullThreshold;
         doc["emptyThreshold"] = emptyThreshold;
         doc["autoOffOnFull"] = autoOffOnFull;

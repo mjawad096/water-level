@@ -15,6 +15,7 @@
         "fstream": "cpp",
         "sstream": "cpp",
         "string_view": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "current sensor": "c"
     }
 }
