@@ -8,7 +8,7 @@ class Reset
 private:
   Setting *settings;
   long lastResetPressTime;
-  const int RESET_PIN = 4;
+  const int RESET_PIN = GPIO_NUM_13;
 
 public:
   void setup(Setting *settings)

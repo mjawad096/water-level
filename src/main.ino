@@ -48,6 +48,9 @@ void setup()
     mySwitch.setup(&settings, &currentSensor, &buzzer);
 
     webServer.setup(&settings, &currentSensor, &mySwitch);
+
+    led.off();
+    buzzer.stop(true);
 }
 
 void loop()
@@ -55,9 +58,9 @@ void loop()
     buzzer.update();
     led.blink();
 
-    // Serial.println(settings.toString());
+    mySwitch.checkForInternalSwitchChange();
 
-    currentSensor.readCurrent();
+    // currentSensor.readCurrent();
 
     webServer.checkForReboot();
 

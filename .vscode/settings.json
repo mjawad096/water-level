@@ -16,6 +16,17 @@
         "sstream": "cpp",
         "string_view": "cpp",
         "regex": "cpp",
-        "current sensor": "c"
+        "current sensor": "c",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "functional": "cpp",
+        "iomanip": "cpp",
+        "istream": "cpp",
+        "limits": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp"
     }
 }

@@ -11,8 +11,8 @@ private:
     const float R2 = 1800.0; // Resistor R2 in ohms (1.8KΩ)
 
     // ACS712 parameters
-    const float sensitivity = 0.066; // Sensitivity for ACS712 30A version (66mV/A)
-    const float noLoadVoltage = 2.5; // No-load voltage for ACS712 (2.5V)
+    const float sensitivity = 0.066;  // Sensitivity for ACS712 30A version (66mV/A)
+    const float noLoadVoltage = 2.18; // No-load voltage for ACS712 (2.5V)
 
     // Voltage conversion constants
     const float maxAnalogValue = 4095.0; // Maximum analog value
@@ -30,11 +30,25 @@ public:
     {
         int analogValue = analogRead(sensorPin);
 
-        float voltage = analogValue * (referenceVoltage / maxAnalogValue);
+        if (analogValue != 0)
+        {
+            float voltage = analogValue * (referenceVoltage / maxAnalogValue);
 
-        float inputVoltage = voltage * (R1 + R2) / R2;
+            float inputVoltage = voltage * (R1 + R2) / R2;
 
-        current = (inputVoltage - noLoadVoltage) / sensitivity;
+            current = (inputVoltage - noLoadVoltage) / sensitivity;
+
+            Serial.println(
+                ", Analog Value:" + String(analogValue) +
+                ", Voltage:" + String(voltage) +
+                ", InputVoltage:" + String(inputVoltage));
+        }
+        else
+        {
+            current = 0.0;
+        }
+
+        Serial.println("Current: " + String(current) + " A");
     }
 
     bool isCurrentFlowing()

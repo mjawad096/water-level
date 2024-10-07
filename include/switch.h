@@ -22,7 +22,9 @@ private:
 
     int manualSwitchRequested = -1;
 
-    static Switch *instance;
+    // Debounce timing variables for interal pin
+    long lastDebounceTime = 0;
+    const long debounceDelay = 100;
 
 public:
     static RTC_DATA_ATTR int externalPinState;
@@ -38,30 +40,43 @@ public:
 
         internalPinState = digitalRead(internalPin);
         digitalWrite(externalPin, externalPinState);
-
-        instance = this;
-
-        attachInterrupt(internalPin, handleInternalSwitchChange, CHANGE);
     }
 
-    static void handleInternalSwitchChange()
+    void checkForInternalSwitchChange()
     {
-        int internalPinState = digitalRead(instance->internalPin);
+        int newInternalPinState = digitalRead(internalPin);
 
-        if (internalPinState == instance->internalPinState)
+        if (internalPinState == newInternalPinState)
         {
             return;
         }
 
-        instance->internalPinState = internalPinState;
-        instance->changeSwitchState(!instance->currentSensor->isCurrentFlowing());
+        long currentTime = millis();
+        if (currentTime - lastDebounceTime <= debounceDelay)
+        {
+            return;
+        }
+
+        lastDebounceTime = currentTime;
+
+        internalPinState = newInternalPinState;
+
+        Serial.print("Internal switch state changed: ");
+        Serial.println(internalPinState);
+
+        changeSwitchState(!currentSensor->isCurrentFlowing());
     }
 
     void changeSwitchState(bool state)
     {
-        if (state != currentSensor->isCurrentFlowing())
+        if (manualSwitchRequested != -1)
         {
-            buzzer->start(1, 300);
+            Serial.println("Manual switch requested: " + String(manualSwitchRequested));
+        }
+
+        if (true || state != currentSensor->isCurrentFlowing())
+        {
+            buzzer->start(1, 100);
 
             int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
 
@@ -77,11 +92,12 @@ public:
             {
                 lastSentOffTime = millis();
             }
-        }
 
-        if (manualSwitchRequested != -1)
+            Serial.println("Switch State changed to " + String(state));
+        }
+        else
         {
-            return;
+            Serial.println("Switch is already in the requested state.");
         }
     }
 
@@ -147,5 +163,4 @@ public:
     }
 };
 
-Switch *Switch::instance = nullptr;
 RTC_DATA_ATTR int Switch::externalPinState = LOW;
