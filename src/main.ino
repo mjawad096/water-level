@@ -58,9 +58,10 @@ void loop()
     buzzer.update();
     led.blink();
 
-    mySwitch.checkForInternalSwitchChange();
-
     currentSensor.readCurrent();
+
+    mySwitch.checkForInternalSwitchChange();
+    mySwitch.handleSwitchState(level);
 
     webServer.checkForReboot();
 
@@ -70,10 +71,13 @@ void loop()
 
     webServer.sendWifiStatus();
 
-    if ((level < settings.emptyThreshold && !currentSensor.isCurrentFlowing()) || (level > settings.fullThreshold && currentSensor.isCurrentFlowing()))
+    if (isLowLevel())
     {
         buzzer.start(2, 60000, 400);
-        led.blinkFor(100);
+    }
+    else if (isHighLevel())
+    {
+        buzzer.start(3, 60000, 200);
     }
     else
     {
@@ -82,6 +86,10 @@ void loop()
         if (currentSensor.isCurrentFlowing())
         {
             led.on(true);
+        }
+        else if (WaterLevel::isLastUpdatedMoreThan(3))
+        {
+            led.blinkFor(100);
         }
         else
         {
@@ -99,6 +107,16 @@ void loop()
     WaterLevelData levelData = waterLevel.getLevel();
 
     processWaterLevel(&levelData);
+}
+
+bool isLowLevel()
+{
+    return level != -1 && level < settings.emptyThreshold && !currentSensor.isCurrentFlowing();
+}
+
+bool isHighLevel()
+{
+    return level != -1 && level > settings.fullThreshold && currentSensor.isCurrentFlowing();
 }
 
 void processWaterLevel(WaterLevelData *levelData)
@@ -130,10 +148,8 @@ void processWaterLevel(WaterLevelData *levelData)
 
     display.displayLevel(levelData);
 
-    mySwitch.handleSwitchState(levelData);
-
-    Serial.print("Level: ");
-    Serial.print(levelData->level);
-    Serial.print(", Distance: ");
-    Serial.println(levelData->distance);
+    // Serial.print("Level: ");
+    // Serial.print(levelData->level);
+    // Serial.print(", Distance: ");
+    // Serial.println(levelData->distance);
 }

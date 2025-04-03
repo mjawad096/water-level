@@ -1,5 +1,4 @@
 #include <setting.h>
-#include <waterlevel.h>
 #include "current_sensor.h"
 #include "buzzer.h"
 
@@ -101,14 +100,8 @@ public:
         }
     }
 
-    void handleSwitchState(WaterLevelData *levelData)
+    void handleSwitchState(int level)
     {
-        if (levelData == nullptr)
-        {
-            Serial.println("Error: Null water level data received.");
-            return;
-        }
-
         if (manualSwitchRequested != -1)
         {
             changeSwitchState(manualSwitchRequested ? true : false);
@@ -117,8 +110,8 @@ public:
         }
         else
         {
-            checkForOpenState(levelData->level);
-            checkForCloseState(levelData->level);
+            checkForOpenState(level);
+            checkForCloseState(level);
         }
     }
 
