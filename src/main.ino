@@ -45,6 +45,10 @@ void loop()
         {
             buzzer.start(2, 60000, 400); // Beep for 1 minute with 400ms cycle
         }
+        else if (espNow.waterLevel != -1 && espNow.waterLevel > 90)
+        {
+            buzzer.start(3, 60000, 200); // Beep for 1 minute with 800ms cycle
+        }
         else
         {
             buzzer.stop(true);
