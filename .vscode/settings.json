@@ -12,6 +12,7 @@
         "cmath": "cpp",
         "iterator": "cpp",
         "*.tcc": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "chrono": "cpp"
     }
 }

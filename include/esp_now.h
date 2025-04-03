@@ -2,6 +2,7 @@
 #include <espnow.h>
 #include <wifi_connect.h>
 #include <display.h>
+#include <waterlevel.h>
 
 #pragma once
 
@@ -12,7 +13,7 @@ private:
     Display *display;
 
 public:
-    static int waterLevel;
+    static WaterLevelData waterLevelData;
     static unsigned long lastUpdatedMillis;
 
     void setup(Display *display)
@@ -37,7 +38,7 @@ public:
     // Callback function that will be executed when data is received
     static void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
     {
-        memcpy(&waterLevel, incomingData, sizeof(waterLevel));
+        memcpy(&waterLevelData, incomingData, sizeof(waterLevelData));
 
         Serial.print("Bytes received: ");
         Serial.println(len);
@@ -51,5 +52,5 @@ public:
     }
 };
 
-int EspNow::waterLevel = -1;
+WaterLevelData EspNow::waterLevelData = {-1, -1. - 1, false, -1, -1};
 unsigned long EspNow::lastUpdatedMillis = 0;
