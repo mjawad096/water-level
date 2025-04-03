@@ -18,16 +18,18 @@ private:
     const float maxAnalogValue = 4095.0; // Maximum analog value
     const float referenceVoltage = 3.3;  // Maximum voltage for esp32
 
-    float current = 0.0; // Current calculated from sensor
-    float threshold = 1; // Current threshold to be considered as flowing
+    float current = 0.0;   // Current calculated from sensor
+    float threshold = 1.5; // Current threshold to be considered as flowing
 
 public:
     CurrentSensor()
     {
     }
 
-    void readCurrent()
+    float getCurrent()
     {
+        float tempCurrent = 0.0;
+
         int analogValue = analogRead(sensorPin);
 
         if (analogValue != 0)
@@ -36,23 +38,38 @@ public:
 
             float inputVoltage = voltage * (R1 + R2) / R2;
 
-            current = (inputVoltage - noLoadVoltage) / sensitivity;
+            tempCurrent = (inputVoltage - noLoadVoltage) / sensitivity;
 
-            Serial.println(
-                ", Analog Value:" + String(analogValue) +
-                ", Voltage:" + String(voltage) +
-                ", InputVoltage:" + String(inputVoltage));
+            // Serial.println(
+            //     ", Analog Value:" + String(analogValue) +
+            //     ", Voltage:" + String(voltage) +
+            //     ", InputVoltage:" + String(inputVoltage) +
+            //     ", Current:" + String(tempCurrent));
         }
-        else
+
+        return tempCurrent;
+    }
+
+    void readCurrent()
+    {
+        float tempCurrent = 0.0;
+        current = 0.0;
+
+        for (int i = 0; i < 3; i++)
         {
-            current = 0.0;
+            tempCurrent = abs(getCurrent());
+
+            if (tempCurrent > current)
+            {
+                current = tempCurrent;
+            }
         }
 
-        Serial.println("Current: " + String(current) + " A");
+        // Serial.println("Current: " + String(current) + " A");
     }
 
     bool isCurrentFlowing()
     {
-        return abs(current) > threshold;
+        return current > threshold;
     }
 };

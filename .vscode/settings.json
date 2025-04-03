@@ -5,6 +5,9 @@
     "[css]": {
         "editor.defaultFormatter": "vscode.css-language-features"
     },
+    "[html]": {
+        "editor.formatOnSave": false,
+    },
     "files.associations": {
         "*.embeddedhtml": "html",
         "atomic": "cpp",

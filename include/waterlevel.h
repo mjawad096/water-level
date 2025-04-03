@@ -1,5 +1,5 @@
 #include <ArduinoJson.h>
-#include "Setting.h"
+#include "setting.h"
 #include "current_sensor.h"
 
 #pragma once
@@ -21,7 +21,7 @@ struct WaterLevelData
         char *buffer = new char[bufferSize];
 
         // Format the data into the allocated buffer
-        snprintf(buffer, bufferSize, "{\"level\": %d, \"distance\": %.2f, \"isPumpOn\": %d}\n\n", level, distance);
+        snprintf(buffer, bufferSize, "{\"level\": %d, \"distance\": %.2f, \"isPumpOn\": %s}\n\n", level, distance, isPumpOn ? "true" : "false");
 
         return buffer;
     }

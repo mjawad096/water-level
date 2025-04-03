@@ -43,7 +43,8 @@
                   </div>
                 </div>
               </div>
-              <div class="box">
+              
+              <div x-show="!loading" class="box">
                 <div>
                   Wifi:
                   <span
@@ -51,7 +52,8 @@
                   ></span>
                 </div>
               </div> 
-              <div class="box">
+
+              <div x-show="!loading" class="box">
                 <div>
                   Is Pump On:
                   <span
@@ -59,8 +61,7 @@
                   ></span>
                 </div>
               </div> 
-              
-              <div class="box justify-between flex-row">
+              <div x-show="!loading" class="box justify-between flex-row">
                 <span>
                   Pump Actions:  
                 </span>
@@ -88,7 +89,7 @@
                 </div>
               </div>
 
-              <div class="box">
+              <div x-show="!loading" class="box">
                 <div>
                   Distance: <span x-text="deviceToWaterDistance"></span>
                 </div>
@@ -398,7 +399,6 @@
                 "open",
                 (e) => {
                   this.connected = true;
-                  this.loading = false;
 
                   this.loadSettings();
 
@@ -420,7 +420,7 @@
 
               source.addEventListener(
                 "message",
-                function (e) {
+                (e) => {
                   console.log("message", e.data);
                 },
                 false
@@ -440,6 +440,8 @@
                   this.waterLevel = data.level;
                   this.deviceToWaterDistance = data.distance;
                   this.isPumpOn = !!data.isPumpOn;
+
+                  this.loading = false;
                 },
                 false
               );

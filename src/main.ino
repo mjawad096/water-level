@@ -60,7 +60,7 @@ void loop()
 
     mySwitch.checkForInternalSwitchChange();
 
-    // currentSensor.readCurrent();
+    currentSensor.readCurrent();
 
     webServer.checkForReboot();
 
@@ -85,7 +85,6 @@ void loop()
         }
         else
         {
-
             led.blinkFor(1500);
         }
     }

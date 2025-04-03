@@ -74,7 +74,7 @@ public:
             Serial.println("Manual switch requested: " + String(manualSwitchRequested));
         }
 
-        if (true || state != currentSensor->isCurrentFlowing())
+        if (state != currentSensor->isCurrentFlowing())
         {
             buzzer->start(1, 100);
 
