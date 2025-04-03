@@ -58,7 +58,14 @@ void loop()
     buzzer.update();
     led.blink();
 
+    bool oldCurrentStatus = currentSensor.isCurrentFlowing();
+
     currentSensor.readCurrent();
+
+    if (oldCurrentStatus != currentSensor.isCurrentFlowing())
+    {
+        lastPingTime = 0;
+    }
 
     mySwitch.checkForInternalSwitchChange();
     mySwitch.handleSwitchState(level);

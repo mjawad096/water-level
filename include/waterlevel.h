@@ -9,10 +9,22 @@ struct WaterLevelData
     int level;
     double distance;
     bool isPumpOn;
+    long fullThreshold;
+    long emptyThreshold;
 
-    WaterLevelData(int l, double d, bool o) : level(l), distance(d), isPumpOn(o) {}
+    WaterLevelData(int l, double d, bool o, long eth, long fth)
+    {
+        level = l;
+        distance = d;
+        isPumpOn = o;
+        emptyThreshold = eth;
+        fullThreshold = fth;
+    }
 
-    WaterLevelData(double l, double d, bool o) : level((int)round(l)), distance(d), isPumpOn(o) {}
+    WaterLevelData(double l, double d, bool o, long eth, long fth)
+    {
+        WaterLevelData((int)round(l), d, o, eth, fth);
+    }
 
     char *formatForSSEvent()
     {
@@ -47,7 +59,7 @@ public:
     {
         if (deviceToWaterDistance == -1)
         {
-            return WaterLevelData(-1, deviceToWaterDistance, currentSensor->isCurrentFlowing());
+            return WaterLevelData(-1, deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
         }
 
         double topEndDistanceFromDevice = settings->topEndFromDevice;
@@ -70,7 +82,7 @@ public:
             level = 100;
         }
 
-        return WaterLevelData(level, WaterLevel::deviceToWaterDistance, currentSensor->isCurrentFlowing());
+        return WaterLevelData(level, WaterLevel::deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
     }
 
     static bool isLastUpdatedMoreThan(unsigned long minutes);
