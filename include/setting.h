@@ -1,5 +1,6 @@
 #include <ArduinoJson.h>
 #include <Preferences.h>
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -29,7 +30,7 @@ public:
     {
         preferences.begin("settings", false);
 
-        Serial.println("Pref Settings loaded");
+        LOGL("Pref Settings loaded");
 
         wifiSSID = preferences.getString("wifiSSID", "test");
         wifiPassword = preferences.getString("wifiPassword", "12345678");
@@ -113,7 +114,7 @@ public:
 
         save();
 
-        Serial.println("Device Reset");
+        LOGL("Device Reset");
     }
 
     JsonDocument toJson()

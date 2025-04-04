@@ -1,6 +1,7 @@
 #include <setting.h>
 #include "current_sensor.h"
 #include "buzzer.h"
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -56,7 +57,7 @@ public:
 
         externalPinState = newExternalPinState;
 
-        Serial.println("Switch State changed to " + String(pendingState));
+        LOGL("Switch State changed to " + String(pendingState));
 
         pendingState = -1;
     }
@@ -80,8 +81,7 @@ public:
 
         internalPinState = newInternalPinState;
 
-        Serial.print("Internal switch state changed: ");
-        Serial.println(internalPinState);
+        LOGL("Internal switch state changed: " + String(internalPinState));
 
         pendingState = currentSensor->isCurrentFlowing() ? false : true;
     }
@@ -95,7 +95,7 @@ public:
 
         pendingState = manualSwitchRequested;
 
-        Serial.println("Manual switch requested: " + String(manualSwitchRequested));
+        LOGL("Manual switch requested: " + String(manualSwitchRequested));
     }
 
     void checkForLevel(int level)
@@ -137,7 +137,7 @@ public:
 
         lastSentOffTime = millis();
 
-        Serial.println("Tank full, Sent Switch state to OFF");
+        LOGL("Tank full, Sent Switch state to OFF");
     }
 
     void manualStart()

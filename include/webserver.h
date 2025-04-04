@@ -13,6 +13,7 @@
 #include "setting.h"
 #include "switch.h"
 #include "waterlevel.h"
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -53,7 +54,7 @@ public:
 
     if (!LittleFS.begin())
     {
-      Serial.println("Failed to mount file system");
+      LOGL("Failed to mount file system");
       return;
     }
 
@@ -69,7 +70,7 @@ public:
 
     server->begin();
 
-    Serial.println("Server started");
+    LOGL("Server started");
   }
 
   void setDefaultRoutes()
@@ -104,7 +105,7 @@ public:
         {
           if (client->lastId())
           {
-            Serial.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+            LOGF("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
           }
           // send event with message "hello!", id current millis
           // and set reconnect delay to 1 second
@@ -241,7 +242,7 @@ public:
   {
     if (levelData == nullptr)
     {
-      Serial.println("Error: Null water level data received.");
+      LOGL("Error: Null water level data received.");
       return;
     }
 
@@ -249,7 +250,7 @@ public:
 
     if (dataChars == nullptr)
     {
-      Serial.println("Error: Memory allocation failed for SSE event.");
+      LOGL("Error: Memory allocation failed for SSE event.");
 
       return;
     }

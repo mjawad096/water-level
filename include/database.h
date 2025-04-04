@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <SD.h>
 #include <sqlite3.h>
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -21,8 +22,7 @@ private:
 
         if (rc != SQLITE_OK)
         {
-            Serial.print("SQL error: ");
-            Serial.println(errMsg);
+            LOGL("SQL error: " + errMsg);
             sqlite3_free(errMsg);
         }
     }
@@ -37,22 +37,21 @@ public:
     {
         if (!SD.begin())
         {
-            Serial.println("SD card initialization failed!");
+            LOGL("SD card initialization failed!");
             return;
         }
 
-        Serial.println("SD card initialized.");
+        LOGL("SD card initialized.");
 
         rc = sqlite3_open(dbPath, &db);
 
         if (rc != SQLITE_OK)
         {
-            Serial.print("Can't open database: ");
-            Serial.println(sqlite3_errmsg(db));
+            LOGL("Can't open database: " + sqlite3_errmsg(db));
             return;
         }
 
-        Serial.println("Database opened successfully.");
+        LOGL("Database opened successfully.");
 
         const char *createTableSQL = "CREATE TABLE IF NOT EXISTS logs ("
                                      "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -79,7 +78,7 @@ public:
 
         executeSQL(insertSQL.c_str());
 
-        Serial.println("Data logged successfully.");
+        LOGL("Data logged successfully.");
 
         close();
     }
@@ -126,8 +125,7 @@ public:
         }
         else
         {
-            Serial.print("SQL error: ");
-            Serial.println(sqlite3_errmsg(db));
+            LOGL("SQL error: " + sqlite3_errmsg(db));
         }
 
         sqlite3_finalize(stmt);
@@ -141,14 +139,14 @@ public:
     {
         if (!dbInitialized)
         {
-            Serial.println("DB is not initialized.");
+            LOGL("DB is not initialized.");
         }
 
         int rc = sqlite3_open(dbPath, &db);
 
         if (rc != SQLITE_OK)
         {
-            Serial.println("Failed to open the database.");
+            LOGL("Failed to open the database.");
             return false;
         }
 
@@ -161,7 +159,7 @@ public:
         {
             sqlite3_close(db);
             db = nullptr;
-            Serial.println("Database closed.");
+            LOGL("Database closed.");
         }
     }
 };

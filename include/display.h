@@ -2,6 +2,7 @@
 #include <Adafruit_SSD1306.h>
 #include <waterlevel.h>
 #include <WiFi.h>
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -29,7 +30,7 @@ public:
         if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
         {
             // Address 0x3D for 128x64
-            Serial.println(F("SSD1306 allocation failed"));
+            LOGL(F("SSD1306 allocation failed"));
 
             dispalyInitialized = false;
         }
@@ -55,13 +56,13 @@ public:
     {
         if (levelData == nullptr)
         {
-            Serial.println("Error: Null water level data received.");
+            LOGL("Error: Null water level data received.");
             return;
         }
 
         if (!dispalyInitialized)
         {
-            Serial.println("Error: Display not initialized.");
+            LOGL("Error: Display not initialized.");
             return;
         }
 

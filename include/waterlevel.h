@@ -84,18 +84,6 @@ public:
             level = 100;
         }
 
-        // Serial.print("Water Level: ");
-        // Serial.println(level);
-        // Serial.print("Distance: ");
-        // Serial.println(deviceToWaterDistance);
-        // Serial.print("Pump Status: ");
-        // Serial.println(currentSensor->isCurrentFlowing() ? "ON" : "OFF");
-        // Serial.print("Full Threshold: ");
-        // Serial.println(settings->fullThreshold);
-        // Serial.print("Empty Threshold: ");
-        // Serial.println(settings->emptyThreshold);
-        // Serial.println();
-
         return WaterLevelData(level, WaterLevel::deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
     }
 

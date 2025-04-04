@@ -8,6 +8,7 @@
 #include "current_sensor.h"
 #include "led.h"
 #include "buzzer.h"
+#include "telnet_logger.h"
 
 Display display;
 EspNow espNow;
@@ -35,6 +36,8 @@ void setup()
     led.setup();
     buzzer.setup();
 
+    LOGL("Starting setup...");
+
     display.setup();
 
     display.displayText("Initializing...", false);
@@ -55,6 +58,8 @@ void setup()
 
 void loop()
 {
+    TelnetLogger::handleClient();
+
     buzzer.update();
     led.blink();
 
@@ -126,7 +131,7 @@ void processWaterLevel(WaterLevelData *levelData)
 {
     if (levelData == nullptr)
     {
-        Serial.println("Error: Null water level data received.");
+        LOGL("Error: Null water level data received.");
         return;
     }
 

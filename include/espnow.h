@@ -4,6 +4,7 @@
 #include <waterlevel.h>
 #include <display.h>
 #include <led.h>
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -23,7 +24,7 @@ public:
 
         if (esp_now_init() != ESP_OK)
         {
-            Serial.println("Error initializing ESP-NOW");
+            LOGL("Error initializing ESP-NOW");
             return;
         }
 
@@ -38,7 +39,7 @@ public:
 
         if (esp_now_add_peer(&peerInfo) != ESP_OK)
         {
-            Serial.println("Failed to add peer");
+            LOGL("Failed to add peer");
             return;
         }
 
@@ -46,7 +47,7 @@ public:
         memcpy(peerInfo.peer_addr, broadcastAddress2, 6);
         if (esp_now_add_peer(&peerInfo) != ESP_OK)
         {
-            Serial.println("Failed to add peer");
+            LOGL("Failed to add peer");
             return;
         }
 
@@ -57,7 +58,7 @@ public:
     {
         if (waterLevelData == nullptr)
         {
-            Serial.println("Error: Null water level data received.");
+            LOGL("Error: Null water level data received.");
             return;
         }
 
@@ -65,11 +66,11 @@ public:
 
         if (result == ESP_OK)
         {
-            Serial.println("Sent with success");
+            LOGL("Sent with success");
         }
         else
         {
-            Serial.println("Error sending the data");
+            LOGL("Error sending the data");
         }
     }
 
@@ -83,15 +84,11 @@ public:
     {
         char macStr[18];
 
-        Serial.print("Packet to: ");
-
         // Copies the sender mac address to a string
         snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
                  mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 
-        Serial.print(macStr);
-        Serial.print(" Send status:\t");
-        Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail");
+        LOGL("Packet to: " + String(macStr) + " -> " + String(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail"));
     }
 
     // callback when data is received
@@ -103,14 +100,12 @@ public:
 
             WaterLevel::lastUpdatedMillis = millis();
 
-            Serial.print("Distance received: ");
-            Serial.println(WaterLevel::deviceToWaterDistance);
+            LOGL("Distance received: " + String(WaterLevel::deviceToWaterDistance));
         }
         catch (const std::exception &e)
         {
-            Serial.println("Error parsing data");
-            Serial.print("Bytes received: ");
-            Serial.println(len);
+            LOGL("Error parsing data");
+            LOGL("Bytes received: " + String(len));
         }
     }
 };

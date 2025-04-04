@@ -1,4 +1,5 @@
 #include "Esp.h"
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -72,7 +73,7 @@ public:
 
             resetReadings(); // Reset readings if we have cycled through all
 
-            // Serial.println("Current: " + String(current) + " A");
+            // LOGL("Current: " + String(current) + " A");
         }
     }
 

@@ -2,6 +2,7 @@
 #include "setting.h"
 #include "display.h"
 #include "led.h"
+#include <telnet_logger.h>
 
 #pragma once
 
@@ -31,6 +32,8 @@ public:
         setupAccessPoint();
 
         connectWifi();
+
+        TelnetLogger::setup();
     }
 
     void setupAccessPoint()
@@ -41,11 +44,9 @@ public:
 
         IPAddress IP = WiFi.softAPIP();
 
-        Serial.println("AP started:");
-        Serial.print("SSID: ");
-        Serial.println(apSSID);
-        Serial.print("IP Address: ");
-        Serial.println(IP);
+        LOGL(" -- AP started --");
+        LOGL("SSID: " + apSSID);
+        LOGL("IP Address: " + IP.toString());
 
         display->setApSSID(apSSID);
         display->displayText("AP: " + apSSID, false);
@@ -88,8 +89,7 @@ public:
             return;
         }
 
-        Serial.print("Connecting to WiFi: ");
-        Serial.println(settings->wifiSSID);
+        LOGL("Connecting to WiFi: " + settings->wifiSSID);
 
         display->displayText("Connecting to WiFi...", false);
 
@@ -102,17 +102,17 @@ public:
         while (WiFi.status() != WL_CONNECTED && attempt < maxAttempts)
         {
             delay(500);
-            Serial.print(".");
+            LOG(".");
             attempt++;
         }
 
         if (WiFi.status() == WL_CONNECTED)
         {
-            Serial.println("Connected to WiFi");
+            LOGL("Connected to WiFi.");
         }
         else
         {
-            Serial.println("Failed to connect to WiFi");
+            LOGL("Failed to connect to WiFi.");
         }
 
         display->displayText("Connected to WiFi", false);
