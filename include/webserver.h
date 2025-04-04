@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Arduino.h"
 #include "LittleFS.h"
 #include "Esp.h"
@@ -13,9 +15,7 @@
 #include "setting.h"
 #include "switch.h"
 #include "waterlevel.h"
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class WebServer
 {

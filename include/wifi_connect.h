@@ -1,10 +1,10 @@
+#pragma once
+
 #include "WiFi.h"
 #include "setting.h"
 #include "display.h"
 #include "led.h"
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class WifiConnect
 {
@@ -33,6 +33,7 @@ public:
 
         connectWifi();
 
+        TimeManager::setup();
         TelnetLogger::setup();
     }
 

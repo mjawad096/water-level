@@ -1,7 +1,7 @@
+#pragma once
+
 #include "Esp.h"
 #include "setting.h"
-
-#pragma once
 
 class Reset
 {

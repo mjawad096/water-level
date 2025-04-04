@@ -1,12 +1,12 @@
+#pragma once
+
 #include <esp_now.h>
 #include <WiFi.h>
 #include <wifi_connect.h>
 #include <waterlevel.h>
 #include <display.h>
 #include <led.h>
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class EspNow
 {

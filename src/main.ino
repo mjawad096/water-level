@@ -8,7 +8,7 @@
 #include "current_sensor.h"
 #include "led.h"
 #include "buzzer.h"
-#include "telnet_logger.h"
+#include "logger.h"
 
 Display display;
 EspNow espNow;
@@ -59,6 +59,7 @@ void setup()
 void loop()
 {
     TelnetLogger::handleClient();
+    TimeManager::updateTime();
 
     buzzer.update();
     led.blink();

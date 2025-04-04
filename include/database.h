@@ -1,10 +1,10 @@
+#pragma once
+
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <SD.h>
 #include <sqlite3.h>
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class Database
 {

@@ -1,7 +1,7 @@
+#pragma once
+
 #include <ArduinoJson.h>
 #include <ESPAsyncWebServer.h>
-
-#pragma once
 
 void sendApiResponse(AsyncWebServerRequest *request, int code, const String &contentType, const String &content)
 {

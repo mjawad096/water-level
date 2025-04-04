@@ -1,9 +1,9 @@
+#pragma once
+
 #include <setting.h>
 #include "current_sensor.h"
 #include "buzzer.h"
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class Switch
 {

@@ -1,7 +1,8 @@
+#pragma once
+
 #include <WiFi.h>
 #include <stdarg.h>
-
-#pragma once
+#include <time_manager.h>
 
 class TelnetLogger
 {
@@ -54,7 +55,7 @@ public:
 
     static void log(const String &msg, bool newLine = true)
     {
-        String line = "[" + String(millis()) + "] " + msg;
+        String line = "[" + TimeManager::getFormattedTime() + "] " + msg;
 
         if (serialEnabled)
         {
@@ -72,7 +73,7 @@ public:
         {
             if (newLine)
             {
-                client.println(line);
+                client.print(line + "\r\n");
             }
             else
             {
@@ -107,7 +108,3 @@ WiFiServer TelnetLogger::server;
 WiFiClient TelnetLogger::client;
 bool TelnetLogger::started = false;
 bool TelnetLogger::serialEnabled = true;
-
-#define LOG(x) TelnetLogger::log(x, false)
-#define LOGL(x) TelnetLogger::log(x, true)
-#define LOGF(...) TelnetLogger::logf(__VA_ARGS__)

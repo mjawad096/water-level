@@ -1,8 +1,8 @@
+#pragma once
+
 #include <ArduinoJson.h>
 #include "setting.h"
 #include "current_sensor.h"
-
-#pragma once
 
 struct __attribute__((packed)) WaterLevelData
 {

@@ -1,8 +1,8 @@
+#pragma once
+
 #include <ArduinoJson.h>
 #include <Preferences.h>
-#include <telnet_logger.h>
-
-#pragma once
+#include <logger.h>
 
 class Setting
 {
