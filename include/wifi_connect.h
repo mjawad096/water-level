@@ -5,6 +5,8 @@
 #include "display.h"
 #include "led.h"
 #include <logger.h>
+#include <ota_manager.h>
+#include <ESPmDNS.h>
 
 class WifiConnect
 {
@@ -35,6 +37,7 @@ public:
 
         TimeManager::setup();
         TelnetLogger::setup();
+        OtaManager::setup();
     }
 
     void setupAccessPoint()
@@ -110,6 +113,16 @@ public:
         if (WiFi.status() == WL_CONNECTED)
         {
             LOGL("Connected to WiFi.");
+
+            // Start mDNS with a hostname
+            if (MDNS.begin("esp32-waterlevel")) // This makes your ESP32 accessible as esp32-waterlevel.local
+            {
+                LOGL("mDNS responder started");
+            }
+            else
+            {
+                LOGL("Error setting up mDNS responder");
+            }
         }
         else
         {

@@ -1,14 +1,6 @@
-#include "display.h"
 #include "espnow.h"
 #include "reset.h"
-#include "setting.h"
-#include "switch.h"
-#include "waterlevel.h"
 #include "webserver.h"
-#include "current_sensor.h"
-#include "led.h"
-#include "buzzer.h"
-#include "logger.h"
 
 Display display;
 EspNow espNow;
@@ -60,6 +52,7 @@ void loop()
 {
     TelnetLogger::handleClient();
     TimeManager::updateTime();
+    OtaManager::handle();
 
     buzzer.update();
     led.blink();

@@ -12,6 +12,9 @@ private:
     static bool started;
     static bool serialEnabled;
 
+    // Private constructor to prevent instantiation
+    TelnetLogger() {}
+
 public:
     static void setup(uint16_t port = 23)
     {

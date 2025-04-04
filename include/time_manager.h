@@ -11,6 +11,9 @@ private:
     static unsigned long lastTimeUpdate;
     static const unsigned long timeUpdateInterval = 1000; // 1 seconds
 
+    // Private constructor to prevent instantiation
+    TimeManager() {}
+
 public:
     static void setup()
     {
