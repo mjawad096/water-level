@@ -4,7 +4,7 @@
 
 #pragma once
 
-struct WaterLevelData
+struct __attribute__((packed)) WaterLevelData
 {
     int level;
     double distance;
@@ -12,18 +12,20 @@ struct WaterLevelData
     long fullThreshold;
     long emptyThreshold;
 
-    WaterLevelData(int l, double d, bool o, long eth, long fth)
+    WaterLevelData(int l, double d, bool o, long eth, long fth) : level(l),
+                                                                  distance(d),
+                                                                  isPumpOn(o),
+                                                                  emptyThreshold(eth),
+                                                                  fullThreshold(fth)
     {
-        level = l;
-        distance = d;
-        isPumpOn = o;
-        emptyThreshold = eth;
-        fullThreshold = fth;
     }
 
-    WaterLevelData(double l, double d, bool o, long eth, long fth)
+    WaterLevelData(double l, double d, bool o, long eth, long fth) : level((int)round(l)),
+                                                                     distance(d),
+                                                                     isPumpOn(o),
+                                                                     emptyThreshold(eth),
+                                                                     fullThreshold(fth)
     {
-        WaterLevelData((int)round(l), d, o, eth, fth);
     }
 
     char *formatForSSEvent()
@@ -81,6 +83,18 @@ public:
         {
             level = 100;
         }
+
+        // Serial.print("Water Level: ");
+        // Serial.println(level);
+        // Serial.print("Distance: ");
+        // Serial.println(deviceToWaterDistance);
+        // Serial.print("Pump Status: ");
+        // Serial.println(currentSensor->isCurrentFlowing() ? "ON" : "OFF");
+        // Serial.print("Full Threshold: ");
+        // Serial.println(settings->fullThreshold);
+        // Serial.print("Empty Threshold: ");
+        // Serial.println(settings->emptyThreshold);
+        // Serial.println();
 
         return WaterLevelData(level, WaterLevel::deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
     }

@@ -18,54 +18,78 @@ private:
     const float maxAnalogValue = 4095.0; // Maximum analog value
     const float referenceVoltage = 3.3;  // Maximum voltage for esp32
 
-    float current = 0.0;   // Current calculated from sensor
-    float threshold = 1.5; // Current threshold to be considered as flowing
+    float current = 0;   // Current in Amperes
+    float threshold = 2; // Current threshold to be considered as flowing
+
+    // Noise filtering parameters
+    const int numReadings = 20; // Number of readings for averaging
+    float readings[20];         // Store last `numReadings` readings
+    int readIndex = 0;          // Index for the current reading
 
 public:
     CurrentSensor()
     {
+        resetReadings(); // Initialize readings to zero
     }
 
-    float getCurrent()
+    void resetReadings()
     {
-        float tempCurrent = 0.0;
+        // Reset the readings array to zeros
+        for (int i = 0; i < numReadings; i++)
+        {
+            readings[i] = 0.0;
+        }
+    }
 
+    float calculateCurrent()
+    {
         int analogValue = analogRead(sensorPin);
 
         if (analogValue != 0)
         {
             float voltage = analogValue * (referenceVoltage / maxAnalogValue);
-
             float inputVoltage = voltage * (R1 + R2) / R2;
+            float tempCurrent = (inputVoltage - noLoadVoltage) / sensitivity;
 
-            tempCurrent = (inputVoltage - noLoadVoltage) / sensitivity;
-
-            // Serial.println(
-            //     ", Analog Value:" + String(analogValue) +
-            //     ", Voltage:" + String(voltage) +
-            //     ", InputVoltage:" + String(inputVoltage) +
-            //     ", Current:" + String(tempCurrent));
+            return abs(tempCurrent); // Return absolute value of current
         }
 
-        return tempCurrent;
+        return 0.0;
     }
 
     void readCurrent()
     {
-        float tempCurrent = 0.0;
-        current = 0.0;
+        float tempCurrent = calculateCurrent(); // Get raw current reading
 
-        for (int i = 0; i < 3; i++)
+        // Track the maximum current from the last `numReadings` readings
+        readings[readIndex] = tempCurrent; // Store the new reading
+
+        readIndex = (readIndex + 1) % numReadings; // Move to the next index
+
+        if (readIndex == 0)
         {
-            tempCurrent = abs(getCurrent());
+            current = getCurrent(); // Update current if we have cycled through all readings
 
-            if (tempCurrent > current)
+            resetReadings(); // Reset readings if we have cycled through all
+
+            // Serial.println("Current: " + String(current) + " A");
+        }
+    }
+
+    float getCurrent()
+    {
+        float maxReading = readings[0]; // Initialize maxReading with the first element
+
+        // Iterate through the array to find the maximum value
+        for (int i = 1; i < numReadings; i++)
+        {
+            if (readings[i] > maxReading)
             {
-                current = tempCurrent;
+                maxReading = readings[i]; // Update maxReading if a higher value is found
             }
         }
 
-        // Serial.println("Current: " + String(current) + " A");
+        return maxReading; // Return the maximum value found
     }
 
     bool isCurrentFlowing()

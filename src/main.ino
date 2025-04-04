@@ -28,6 +28,9 @@ unsigned int continueInvalidLevelCount = 0;
 
 unsigned long lastPingTime = 0;
 
+unsigned long lastCurrentCheck = 0;
+unsigned long currentCheckInterval = 300;
+
 void setup()
 {
     Serial.begin(115200);
@@ -66,7 +69,7 @@ void loop()
 
     if (oldCurrentStatus != currentSensor.isCurrentFlowing())
     {
-        lastPingTime = 0;
+        lastPingTime = millis() - settings.durationForPing * 1000 - 1000;
     }
 
     webServer.checkForReboot();
@@ -111,6 +114,18 @@ void loop()
     lastPingTime = millis();
 
     WaterLevelData levelData = waterLevel.getLevel();
+
+    // Serial.print("Water Level: ");
+    // Serial.println(levelData.level);
+    // Serial.print("Distance: ");
+    // Serial.println(levelData.distance);
+    // Serial.print("Pump Status: ");
+    // Serial.println(levelData.isPumpOn ? "ON" : "OFF");
+    // Serial.print("Full Threshold: ");
+    // Serial.println(levelData.fullThreshold);
+    // Serial.print("Empty Threshold: ");
+    // Serial.println(levelData.emptyThreshold);
+    // Serial.println();
 
     processWaterLevel(&levelData);
 }

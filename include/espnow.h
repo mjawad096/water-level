@@ -61,7 +61,7 @@ public:
             return;
         }
 
-        esp_err_t result = esp_now_send(0, (uint8_t *)&waterLevelData, sizeof(waterLevelData));
+        esp_err_t result = esp_now_send(0, (uint8_t *)waterLevelData, sizeof(WaterLevelData));
 
         if (result == ESP_OK)
         {
