@@ -44,6 +44,20 @@ public:
         Serial.println(len);
 
         lastUpdatedMillis = millis();
+
+        Serial.print("Water Level: ");
+        Serial.println(waterLevelData.level);
+        Serial.print("Distance: ");
+        Serial.println(waterLevelData.distance);
+        Serial.print("Pump Status: ");
+        Serial.println(waterLevelData.isPumpOn ? "ON" : "OFF");
+        Serial.print("Full Threshold: ");
+        Serial.println(waterLevelData.fullThreshold);
+        Serial.print("Empty Threshold: ");
+        Serial.println(waterLevelData.emptyThreshold);
+        Serial.print("Size: ");
+        Serial.print(sizeof(waterLevelData));
+        Serial.println();
     }
 
     bool isLastUpdatedMoreThan(int minutes)
@@ -52,5 +66,5 @@ public:
     }
 };
 
-WaterLevelData EspNow::waterLevelData = {-1, -1. - 1, false, -1, -1};
+WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1};
 unsigned long EspNow::lastUpdatedMillis = 0;
