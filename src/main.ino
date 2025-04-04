@@ -28,9 +28,6 @@ unsigned int continueInvalidLevelCount = 0;
 
 unsigned long lastPingTime = 0;
 
-unsigned long lastCurrentCheck = 0;
-unsigned long currentCheckInterval = 300;
-
 void setup()
 {
     Serial.begin(115200);
@@ -61,16 +58,11 @@ void loop()
     buzzer.update();
     led.blink();
 
-    mySwitch.checkForInternalSwitchChange();
-
-    bool oldCurrentStatus = currentSensor.isCurrentFlowing();
-
     currentSensor.readCurrent();
 
-    if (oldCurrentStatus != currentSensor.isCurrentFlowing())
-    {
-        lastPingTime = millis() - settings.durationForPing * 1000 - 1000;
-    }
+    mySwitch.checkForLevel(level);
+    mySwitch.checkForManualSwitchRequested();
+    mySwitch.checkForInternalSwitchChange();
 
     webServer.checkForReboot();
 
@@ -79,6 +71,19 @@ void loop()
     espNow.checkWifiConnection();
 
     webServer.sendWifiStatus();
+
+    if (WaterLevel::isLastUpdatedMoreThan(3))
+    {
+        led.blinkFor(100);
+    }
+    else if (currentSensor.isCurrentFlowing())
+    {
+        led.on(true);
+    }
+    else
+    {
+        led.blinkFor(1500);
+    }
 
     if (isLowLevel())
     {
@@ -91,19 +96,6 @@ void loop()
     else
     {
         buzzer.stop(true);
-
-        if (currentSensor.isCurrentFlowing())
-        {
-            led.on(true);
-        }
-        else if (WaterLevel::isLastUpdatedMoreThan(3))
-        {
-            led.blinkFor(100);
-        }
-        else
-        {
-            led.blinkFor(1500);
-        }
     }
 
     if (millis() - lastPingTime < settings.durationForPing * 1000)
@@ -115,19 +107,9 @@ void loop()
 
     WaterLevelData levelData = waterLevel.getLevel();
 
-    // Serial.print("Water Level: ");
-    // Serial.println(levelData.level);
-    // Serial.print("Distance: ");
-    // Serial.println(levelData.distance);
-    // Serial.print("Pump Status: ");
-    // Serial.println(levelData.isPumpOn ? "ON" : "OFF");
-    // Serial.print("Full Threshold: ");
-    // Serial.println(levelData.fullThreshold);
-    // Serial.print("Empty Threshold: ");
-    // Serial.println(levelData.emptyThreshold);
-    // Serial.println();
-
     processWaterLevel(&levelData);
+
+    mySwitch.handlePendingState();
 }
 
 bool isLowLevel()
@@ -168,11 +150,4 @@ void processWaterLevel(WaterLevelData *levelData)
     espNow.sendWaterLevel(levelData);
 
     display.displayLevel(levelData);
-
-    mySwitch.handleSwitchState(level);
-
-    // Serial.print("Level: ");
-    // Serial.print(levelData->level);
-    // Serial.print(", Distance: ");
-    // Serial.println(levelData->distance);
 }

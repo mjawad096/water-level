@@ -25,6 +25,8 @@ private:
     long lastDebounceTime = 0;
     const long debounceDelay = 100;
 
+    int pendingState = -1;
+
 public:
     static RTC_DATA_ATTR int externalPinState;
 
@@ -39,6 +41,24 @@ public:
 
         internalPinState = digitalRead(internalPin);
         digitalWrite(externalPin, externalPinState);
+    }
+
+    void handlePendingState()
+    {
+        if (pendingState == -1 || pendingState == currentSensor->isCurrentFlowing())
+        {
+            return;
+        }
+
+        int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
+
+        digitalWrite(externalPin, newExternalPinState);
+
+        externalPinState = newExternalPinState;
+
+        Serial.println("Switch State changed to " + String(pendingState));
+
+        pendingState = -1;
     }
 
     void checkForInternalSwitchChange()
@@ -63,61 +83,30 @@ public:
         Serial.print("Internal switch state changed: ");
         Serial.println(internalPinState);
 
-        changeSwitchState(!currentSensor->isCurrentFlowing());
+        pendingState = currentSensor->isCurrentFlowing() ? false : true;
     }
 
-    void changeSwitchState(bool state)
+    void checkForManualSwitchRequested()
     {
-        if (manualSwitchRequested != -1)
+        if (manualSwitchRequested == -1)
         {
-            Serial.println("Manual switch requested: " + String(manualSwitchRequested));
+            return;
         }
 
-        if (state != currentSensor->isCurrentFlowing())
-        {
-            buzzer->start(1, 500);
+        pendingState = manualSwitchRequested;
 
-            int newExternalPinState = state == false ? LOW : HIGH;
-
-            digitalWrite(externalPin, newExternalPinState);
-
-            externalPinState = newExternalPinState;
-
-            if (state)
-            {
-                lastSentOnTime = millis();
-            }
-            else
-            {
-                lastSentOffTime = millis();
-            }
-
-            Serial.println("Switch State changed to " + String(state));
-        }
-        else
-        {
-            Serial.println("Switch is already in the requested state.");
-        }
+        Serial.println("Manual switch requested: " + String(manualSwitchRequested));
     }
 
-    void handleSwitchState(int level)
+    void checkForLevel(int level)
     {
-        if (manualSwitchRequested != -1)
-        {
-            changeSwitchState(manualSwitchRequested ? true : false);
-
-            manualSwitchRequested = -1;
-        }
-        else
-        {
-            checkForOpenState(level);
-            checkForCloseState(level);
-        }
+        checkForOpenState(level);
+        checkForCloseState(level);
     }
 
     void checkForOpenState(int level)
     {
-        if (!settings->autoOnOnEmpty || level > settings->emptyThreshold)
+        if (!settings->autoOnOnEmpty || level > settings->emptyThreshold || currentSensor->isCurrentFlowing())
         {
             return;
         }
@@ -127,12 +116,14 @@ public:
             return;
         }
 
-        changeSwitchState(true);
+        pendingState = true;
+
+        lastSentOnTime = millis();
     }
 
     void checkForCloseState(int level)
     {
-        if (!settings->autoOffOnFull || level < settings->fullThreshold)
+        if (!settings->autoOffOnFull || level == -1 || level < settings->fullThreshold || !currentSensor->isCurrentFlowing())
         {
             return;
         }
@@ -142,7 +133,11 @@ public:
             return;
         }
 
-        changeSwitchState(false);
+        pendingState = false;
+
+        lastSentOffTime = millis();
+
+        Serial.println("Tank full, Sent Switch state to OFF");
     }
 
     void manualStart()
