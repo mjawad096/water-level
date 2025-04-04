@@ -58,6 +58,8 @@ void loop()
     buzzer.update();
     led.blink();
 
+    mySwitch.checkForInternalSwitchChange();
+
     bool oldCurrentStatus = currentSensor.isCurrentFlowing();
 
     currentSensor.readCurrent();
@@ -66,9 +68,6 @@ void loop()
     {
         lastPingTime = 0;
     }
-
-    mySwitch.checkForInternalSwitchChange();
-    mySwitch.handleSwitchState(level);
 
     webServer.checkForReboot();
 
@@ -154,6 +153,8 @@ void processWaterLevel(WaterLevelData *levelData)
     espNow.sendWaterLevel(levelData);
 
     display.displayLevel(levelData);
+
+    mySwitch.handleSwitchState(level);
 
     // Serial.print("Level: ");
     // Serial.print(levelData->level);
