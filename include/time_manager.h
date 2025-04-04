@@ -9,7 +9,7 @@ private:
     static bool initialized;
     static struct tm timeInfo;
     static unsigned long lastTimeUpdate;
-    static const unsigned long timeUpdateInterval = 10000; // 10 seconds
+    static const unsigned long timeUpdateInterval = 1000; // 1 seconds
 
 public:
     static void setup()
