@@ -75,9 +75,9 @@ public:
 
         if (state != currentSensor->isCurrentFlowing())
         {
-            buzzer->start(1, 100);
+            buzzer->start(1, 500);
 
-            int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
+            int newExternalPinState = state == false ? LOW : HIGH;
 
             digitalWrite(externalPin, newExternalPinState);
 
