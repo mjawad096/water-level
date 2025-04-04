@@ -96,6 +96,8 @@ public:
         pendingState = manualSwitchRequested;
 
         LOGL("Manual switch requested: " + String(manualSwitchRequested));
+
+        manualSwitchRequested = -1;
     }
 
     void checkForLevel(int level)

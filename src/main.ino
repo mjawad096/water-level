@@ -77,13 +77,13 @@ void loop()
 
     webServer.sendWifiStatus();
 
-    if (WaterLevel::isLastUpdatedMoreThan(3))
-    {
-        led.blinkFor(100);
-    }
-    else if (currentSensor.isCurrentFlowing())
+    if (currentSensor.isCurrentFlowing())
     {
         led.on(true);
+    }
+    else if (WaterLevel::isLastUpdatedMoreThan(3))
+    {
+        led.blinkFor(100);
     }
     else
     {
