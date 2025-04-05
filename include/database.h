@@ -3,7 +3,7 @@
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <SD.h>
-#include <logger.h>
+// #include <logger.h>
 #include <time_manager.h>
 #include <waterlevel.h>
 #include <ESPAsyncWebServer.h>
@@ -11,23 +11,28 @@
 class Database
 {
 private:
-    const char *logDir = "/sd/logs";
-    const char *entriesDir = "/sd/entries";
+    const char *baseDir = "/waterlevel";
+    const char *logDir = "/waterlevel/logs";
+    const char *entriesDir = "/waterlevel/entries";
 
     // Parameters for deletion
     String _lastDeleteDate = "";
     File _dir;
     File _currentFile;
+    int _dirIndex = 0;
 
     String getFileName(String date, bool isEntry = true)
     {
-        return String(isEntry ? entriesDir : logDir) + "/" + date + ".json";
+        return String(isEntry ? entriesDir : logDir) + "/" + date + ".csv";
     }
 
     // Helper function to check if the file should be deleted (older than 30 days)
-    bool shouldDeleteFile(String fileDate)
+    bool shouldDeleteFile(String path, bool isEntry)
     {
-        return TimeManager::getDateDaysAgoString(30) > fileDate; // Simple check for files older than today
+        String _path = getFileName(TimeManager::getDateString(), isEntry);
+
+        return path.equals(_path);
+        // return TimeManager::getDateDaysAgoString(30) > fileDate;
     }
 
 public:
@@ -40,20 +45,37 @@ public:
     {
         if (!SD.begin())
         {
-            LOGL("SD card initialization failed!");
+            // LOGL("SD: Card initialization failed!");
             return;
         }
 
-        LOGL("SD card initialized.");
+        // LOGL(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
+
+        if (!SD.exists(baseDir))
+        {
+            if (!SD.mkdir(baseDir))
+            {
+                // LOGL("SD: Failed to create base directory!");
+                return;
+            }
+        }
 
         if (!SD.exists(logDir))
         {
-            SD.mkdir(logDir);
+            if (!SD.mkdir(logDir))
+            {
+                // LOGL("SD: Failed to create log directory!");
+                return;
+            }
         }
 
         if (!SD.exists(entriesDir))
         {
-            SD.mkdir(entriesDir);
+            if (!SD.mkdir(entriesDir))
+            {
+                // LOGL("SD: Failed to create entries directory!");
+                return;
+            }
         }
     }
 
@@ -62,7 +84,7 @@ public:
     {
         if (levelData == nullptr)
         {
-            LOGL("Error: Null water level data received.");
+            // LOGL("SD: Null water level data received.");
             return;
         }
 
@@ -84,7 +106,7 @@ public:
         }
         else
         {
-            LOGL("Error opening file for writing");
+            // LOGL("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
         }
     }
 
@@ -104,7 +126,7 @@ public:
         }
         else
         {
-            LOGL("Error opening file for writing");
+            // LOGL("SD: Error opening file for writing");
         }
     }
 
@@ -113,15 +135,15 @@ public:
         bool isEntry = true;
         String date = TimeManager::getDateString();
 
-        if (request->hasParam("loggs", true))
+        if (request->hasParam("loggs", false))
         {
-            AsyncWebParameter *p = request->getParam("loggs", true);
+            AsyncWebParameter *p = request->getParam("loggs", false);
             isEntry = p->value() != "true";
         }
 
-        if (request->hasParam("date", true))
+        if (request->hasParam("date", false))
         {
-            AsyncWebParameter *p = request->getParam("date", true);
+            AsyncWebParameter *p = request->getParam("date", false);
             date = p->value();
         }
 
@@ -138,41 +160,99 @@ public:
             filename,
             "text/csv");
 
-        if (filename == TimeManager::getDateString())
+        if (TimeManager::getDateString().equals(filename))
         {
             // today’s file → always re‑validate
-            resp->addHeader("Cache‑Control", "no-store, no-cache, must-revalidate, max-age=0");
+            resp->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+
             resp->addHeader("Pragma", "no-cache");
             resp->addHeader("Expires", "0");
         }
         else
         {
             // file is older than today → cache for 1 day
-            resp->addHeader("Cache‑Control", "public, max-age=86400");
+            resp->addHeader("Cache-Control", "public, max-age=86400");
         }
 
         request->send(resp);
     }
 
+    void listFiles(AsyncWebServerRequest *request)
+    {
+        String fileList;
+        bool isEntry = true;
+
+        if (request->hasParam("loggs", false))
+        {
+            AsyncWebParameter *p = request->getParam("loggs", false);
+            isEntry = p->value() != "true";
+        }
+
+        File dir = SD.open(isEntry ? entriesDir : logDir);
+
+        if (!dir)
+        {
+            request->send(500, "text/plain", "Failed to open directory");
+            return;
+        }
+
+        // Set up the response stream
+        AsyncResponseStream *response = new AsyncResponseStream("text/plain", 200);
+        request->send(response);
+
+        // Stream the file names progressively
+        while (true)
+        {
+            File entry = dir.openNextFile();
+
+            if (!entry)
+            {
+                break; // No more files
+            }
+
+            String fileName = String(entry.name()) + "\n";
+
+            response->write(fileName.c_str());
+
+            entry.close();
+        }
+
+        dir.close();
+    }
+
     // Method to delete files older than a month
     void deleteOldFiles()
     {
-        if (TimeManager::getDateString() == _lastDeleteDate)
+        if (TimeManager::getDateString().equals(_lastDeleteDate))
         {
             return;
         }
 
+        bool isEntry = _dirIndex == 0;
+
         // If we haven't opened the directory yet, do it now
         if (!_dir)
         {
-            _dir = SD.open(logDir);
+            _dir = SD.open(isEntry ? entriesDir : logDir);
             if (!_dir)
             {
-                LOGL("Failed to open log directory");
+                // LOGL("SD: Failed to open directory for deletion");
 
-                _lastDeleteDate = TimeManager::getDateString();
+                if (isEntry)
+                {
+                    _dirIndex++;
+                }
+                else
+                {
+                    _dirIndex = 0;
+                    _lastDeleteDate = TimeManager::getDateString();
+                }
 
                 return;
+            }
+            else
+            {
+                // LOGL("SD: Opened directory for deletion");
             }
         }
 
@@ -186,23 +266,42 @@ public:
                 _dir.close();
                 _currentFile = File();
 
-                _lastDeleteDate = TimeManager::getDateString();
+                if (isEntry)
+                {
+                    _dirIndex++;
+                }
+                else
+                {
+                    _dirIndex = 0;
+                    _lastDeleteDate = TimeManager::getDateString();
+                }
                 return;
             }
         }
 
         // Process the current file
-        String filename = _currentFile.name();
+        String filePath = _currentFile.path();
 
-        if (shouldDeleteFile(filename))
+        if (shouldDeleteFile(filePath, isEntry))
         {
-            LOGL("Deleting old file: " + filename);
-            SD.remove(filename); // Delete the file
+            // LOGL("SD: Deleting old file: " + filePath);
+            if (!SD.remove(filePath))
+            {
+                // LOGL("SD: Failed to delete file: " + filePath);
+            }
         }
 
         _currentFile.close();
         _currentFile = File(); // Move to the next file on the next loop
 
-        _lastDeleteDate = TimeManager::getDateString(); // Mark as completed for today
+        if (isEntry)
+        {
+            _dirIndex++;
+        }
+        else
+        {
+            _dirIndex = 0;
+            _lastDeleteDate = TimeManager::getDateString();
+        }
     }
 };

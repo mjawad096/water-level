@@ -99,6 +99,14 @@ public:
         });
 
     server->on(
+        "/loggs/files",
+        HTTP_GET,
+        [this](AsyncWebServerRequest *request)
+        {
+          this->database->listFiles(request);
+        });
+
+    server->on(
         "/loggs",
         HTTP_GET,
         [this](AsyncWebServerRequest *request)

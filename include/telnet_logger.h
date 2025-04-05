@@ -16,10 +16,12 @@ private:
     TelnetLogger() {}
 
 public:
-    static void setup(uint16_t port = 23)
+    static void setup()
     {
         if (started)
             return;
+
+        uint16_t port = 23;
 
         server = WiFiServer(port);
         server.begin();
@@ -56,7 +58,7 @@ public:
         }
     }
 
-    static void log(const String &msg, bool newLine = true)
+    static void log(const String &msg, bool newLine = true, bool dblog = true)
     {
         String line = "[" + TimeManager::getDateTimeString() + "] " + msg;
 
