@@ -1,21 +1,17 @@
 #pragma once
 
-#include "Arduino.h"
-#include "LittleFS.h"
-#include "Esp.h"
-#include "ArduinoJson.h"
-#include "WiFi.h"
-#include "api_response.h"
+#include <Arduino.h>
+#include <LittleFS.h>
+#include <Esp.h>
 #include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include "AsyncJson.h"
+#include <AsyncJson.h>
 #include <HTTPClient.h>
-#include "HTTPUpdate.h"
+#include <HTTPUpdate.h>
+#include "api_response.h"
 #include "wifi_connect.h"
-#include "setting.h"
 #include "switch.h"
 #include "waterlevel.h"
-#include <logger.h>
+#include "database.h"
 
 class WebServer
 {
@@ -25,6 +21,7 @@ private:
   Setting *settings;
   Switch *mySwitch;
   CurrentSensor *currentSensor;
+  Database *database;
   AsyncCallbackJsonWebHandler *saveSettingsHandler;
 
   bool rebootDevice = false;
@@ -46,11 +43,12 @@ public:
     delete saveSettingsHandler;
   }
 
-  void setup(Setting *settings, CurrentSensor *currentSensor, Switch *mySwitch)
+  void setup(Setting *settings, CurrentSensor *currentSensor, Switch *mySwitch, Database *database)
   {
     this->settings = settings;
     this->currentSensor = currentSensor;
     this->mySwitch = mySwitch;
+    this->database = database;
 
     if (!LittleFS.begin())
     {
@@ -98,6 +96,14 @@ public:
           sendApiResponse(request, 200, "Restarting device.");
 
           rebootDevice = true;
+        });
+
+    server->on(
+        "/loggs",
+        HTTP_GET,
+        [this](AsyncWebServerRequest *request)
+        {
+          this->database->streamFile(request);
         });
 
     events->onConnect(

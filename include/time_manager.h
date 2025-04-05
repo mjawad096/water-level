@@ -14,6 +14,26 @@ private:
     // Private constructor to prevent instantiation
     TimeManager() {}
 
+    static String getDateTimeString(struct tm *timeInfo)
+    {
+        char buffer[20];
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);
+        return String(buffer);
+    }
+
+    static String getDateString(struct tm *timeInfo)
+    {
+        if (timeInfo == nullptr)
+        {
+            return String(millis());
+        }
+
+        char buffer[11];
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d", timeInfo);
+
+        return String(buffer);
+    }
+
 public:
     static void setup()
     {
@@ -78,7 +98,7 @@ public:
         }
     }
 
-    static String getFormattedTime()
+    static String getDateTimeString()
     {
         if (!initialized)
         {
@@ -86,9 +106,64 @@ public:
             return String(millis());
         }
 
-        char buffer[20];
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &timeInfo);
-        return String(buffer);
+        return getDateTimeString(&timeInfo);
+    }
+
+    static String getDateString()
+    {
+        if (!initialized)
+        {
+            Serial.println("Time not initialized.");
+            return String(millis());
+        }
+
+        return getDateString(&timeInfo);
+    }
+
+    static struct tm getTimeInfoDaysAgo(int daysAgo)
+    {
+        if (!initialized)
+        {
+            Serial.println("Time not initialized.");
+            return {0};
+        }
+
+        struct tm timeInfoCopy = timeInfo; // Create a copy of the current time
+
+        timeInfoCopy.tm_mday -= daysAgo; // Subtract the number of days
+        mktime(&timeInfoCopy);           // Normalize time structure
+
+        return timeInfoCopy;
+    }
+
+    static String getDateDaysAgoString(int daysAgo)
+    {
+        struct tm timeInfoCopy = getTimeInfoDaysAgo(daysAgo);
+
+        return getDateString(&timeInfoCopy);
+    }
+
+    // Validate "YYYY-MM-DD"
+    static bool isValidDate(const String &s)
+    {
+        if (s.length() != 10)
+            return false;
+
+        struct tm tm;
+        memset(&tm, 0, sizeof(tm));
+
+        // Try to parse; strptime returns a pointer to the first unparsed character
+        char *ret = strptime(s.c_str(), "%Y-%m-%d", &tm);
+        if (ret == nullptr || *ret != '\0')
+        {
+            // parsing failed or extra chars remain
+            return false;
+        }
+
+        // mktime will normalize out‐of‐range values (e.g. month=13 → next year)
+        // so if you get -1 back, it was an invalid date
+        time_t t = mktime(&tm);
+        return (t != (time_t)-1);
     }
 };
 

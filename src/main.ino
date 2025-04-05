@@ -1,6 +1,7 @@
 #include "espnow.h"
 #include "reset.h"
 #include "webserver.h"
+#include "database.h"
 
 Display display;
 EspNow espNow;
@@ -11,6 +12,8 @@ Setting settings;
 Switch mySwitch;
 WebServer webServer;
 CurrentSensor currentSensor;
+
+Database database;
 
 Led led;
 Buzzer buzzer;
@@ -28,6 +31,10 @@ void setup()
     led.setup();
     buzzer.setup();
 
+    LOGL("Initializing the databse...");
+
+    database.setup();
+
     LOGL("Starting setup...");
 
     display.setup();
@@ -42,7 +49,7 @@ void setup()
 
     mySwitch.setup(&settings, &currentSensor, &buzzer);
 
-    webServer.setup(&settings, &currentSensor, &mySwitch);
+    webServer.setup(&settings, &currentSensor, &mySwitch, &database);
 
     led.off();
     buzzer.stop(true);
@@ -149,4 +156,6 @@ void processWaterLevel(WaterLevelData *levelData)
     espNow.sendWaterLevel(levelData);
 
     display.displayLevel(levelData);
+
+    database.saveLevelEntry(levelData);
 }

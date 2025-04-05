@@ -3,36 +3,39 @@
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <SD.h>
-#include <sqlite3.h>
 #include <logger.h>
+#include <time_manager.h>
+#include <waterlevel.h>
+#include <ESPAsyncWebServer.h>
 
 class Database
 {
 private:
-    const char *dbPath = "/sd/logs.db";
+    const char *logDir = "/sd/logs";
+    const char *entriesDir = "/sd/entries";
 
-    sqlite3 *db;
-    char *errMsg = nullptr;
-    int rc;
-    bool dbInitialized = false;
+    // Parameters for deletion
+    String _lastDeleteDate = "";
+    File _dir;
+    File _currentFile;
 
-    void executeSQL(const char *sql)
+    String getFileName(String date, bool isEntry = true)
     {
-        rc = sqlite3_exec(db, sql, 0, 0, &errMsg);
+        return String(isEntry ? entriesDir : logDir) + "/" + date + ".json";
+    }
 
-        if (rc != SQLITE_OK)
-        {
-            LOGL("SQL error: " + errMsg);
-            sqlite3_free(errMsg);
-        }
+    // Helper function to check if the file should be deleted (older than 30 days)
+    bool shouldDeleteFile(String fileDate)
+    {
+        return TimeManager::getDateDaysAgoString(30) > fileDate; // Simple check for files older than today
     }
 
 public:
-    ~Database()
-    {
-        close();
-    }
+    // Constructor and Destructor
+    Database() {}
+    ~Database() {}
 
+    // Setup function to initialize SD card
     void setup()
     {
         if (!SD.begin())
@@ -43,123 +46,163 @@ public:
 
         LOGL("SD card initialized.");
 
-        rc = sqlite3_open(dbPath, &db);
-
-        if (rc != SQLITE_OK)
+        if (!SD.exists(logDir))
         {
-            LOGL("Can't open database: " + sqlite3_errmsg(db));
+            SD.mkdir(logDir);
+        }
+
+        if (!SD.exists(entriesDir))
+        {
+            SD.mkdir(entriesDir);
+        }
+    }
+
+    // Method to log data for today in CSV format
+    void saveLevelEntry(WaterLevelData *levelData)
+    {
+        if (levelData == nullptr)
+        {
+            LOGL("Error: Null water level data received.");
             return;
         }
 
-        LOGL("Database opened successfully.");
+        String currentDate = TimeManager::getDateString();
+        String filename = getFileName(currentDate);
 
-        const char *createTableSQL = "CREATE TABLE IF NOT EXISTS logs ("
-                                     "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                     "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                                     "level INTEGER, "
-                                     "distance REAL, "
-                                     "status INTEGER);";
-        executeSQL(createTableSQL);
+        // Open the file for appending
+        File file = SD.open(filename, FILE_APPEND);
 
-        close();
-
-        dbInitialized = true;
-    }
-
-    void logData(int level, double distance, bool status)
-    {
-        if (!open())
-            return;
-
-        String insertSQL = "INSERT INTO logs (level, distance, status) VALUES (";
-        insertSQL += String(level) + ", ";
-        insertSQL += String(distance, 2) + ", ";
-        insertSQL += String(status ? 1 : 0) + ");";
-
-        executeSQL(insertSQL.c_str());
-
-        LOGL("Data logged successfully.");
-
-        close();
-    }
-
-    String getDataForPastDay()
-    {
-        return retrieveData("SELECT * FROM logs WHERE timestamp >= datetime('now', '-1 day');");
-    }
-
-    String getDataForLast7Days()
-    {
-        return retrieveData("SELECT * FROM logs WHERE timestamp >= datetime('now', '-7 day');");
-    }
-
-    String retrieveData(const char *query)
-    {
-        if (!open())
+        if (file)
         {
-            return "{}";
-        }
-
-        sqlite3_stmt *stmt;
-        String jsonResult = "";
-
-        rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
-        if (rc == SQLITE_OK)
-        {
-            DynamicJsonDocument doc(1024);
-            JsonArray array = doc.to<JsonArray>();
-
-            while (sqlite3_step(stmt) == SQLITE_ROW)
-            {
-                JsonObject obj = array.createNestedObject();
-                obj["id"] = sqlite3_column_int(stmt, 0);
-                obj["timestamp"] = (const char *)sqlite3_column_text(stmt, 1);
-                obj["level"] = sqlite3_column_int(stmt, 2);
-                obj["distance"] = sqlite3_column_double(stmt, 3);
-                obj["status"] = sqlite3_column_int(stmt, 4) == 1;
-
-                doc.garbageCollect();
-            }
-
-            serializeJson(doc, jsonResult);
+            // Write the data in CSV format: timestamp, level, distance, isPumpOn
+            file.printf("%s,%d,%.2f,%d\n",
+                        TimeManager::getDateTimeString().c_str(),
+                        levelData->level,
+                        levelData->distance,
+                        levelData->isPumpOn ? 1 : 0);
+            file.close();
         }
         else
         {
-            LOGL("SQL error: " + sqlite3_errmsg(db));
+            LOGL("Error opening file for writing");
         }
-
-        sqlite3_finalize(stmt);
-
-        close();
-
-        return jsonResult;
     }
 
-    bool open()
+    void saveLogEntry(String message)
     {
-        if (!dbInitialized)
+        String currentDate = TimeManager::getDateString();
+        String filename = getFileName(currentDate, false);
+
+        // Open the file for appending
+        File file = SD.open(filename, FILE_APPEND);
+
+        if (file)
         {
-            LOGL("DB is not initialized.");
+            file.print(TimeManager::getDateTimeString());
+            file.print(",");
+            file.print(message);
         }
-
-        int rc = sqlite3_open(dbPath, &db);
-
-        if (rc != SQLITE_OK)
+        else
         {
-            LOGL("Failed to open the database.");
-            return false;
+            LOGL("Error opening file for writing");
         }
-
-        return true;
     }
 
-    void close()
+    void streamFile(AsyncWebServerRequest *request)
     {
-        if (db)
+        bool isEntry = true;
+        String date = TimeManager::getDateString();
+
+        if (request->hasParam("loggs", true))
         {
-            sqlite3_close(db);
-            db = nullptr;
-            LOGL("Database closed.");
+            AsyncWebParameter *p = request->getParam("loggs", true);
+            isEntry = p->value() != "true";
         }
+
+        if (request->hasParam("date", true))
+        {
+            AsyncWebParameter *p = request->getParam("date", true);
+            date = p->value();
+        }
+
+        if (!TimeManager::isValidDate(date))
+        {
+            request->send(400, "text/plain", "Invalid date format");
+            return;
+        }
+
+        String filename = getFileName(date, isEntry);
+
+        AsyncWebServerResponse *resp = request->beginResponse(
+            SD,
+            filename,
+            "text/csv");
+
+        if (filename == TimeManager::getDateString())
+        {
+            // today’s file → always re‑validate
+            resp->addHeader("Cache‑Control", "no-store, no-cache, must-revalidate, max-age=0");
+            resp->addHeader("Pragma", "no-cache");
+            resp->addHeader("Expires", "0");
+        }
+        else
+        {
+            // file is older than today → cache for 1 day
+            resp->addHeader("Cache‑Control", "public, max-age=86400");
+        }
+
+        request->send(resp);
+    }
+
+    // Method to delete files older than a month
+    void deleteOldFiles()
+    {
+        if (TimeManager::getDateString() == _lastDeleteDate)
+        {
+            return;
+        }
+
+        // If we haven't opened the directory yet, do it now
+        if (!_dir)
+        {
+            _dir = SD.open(logDir);
+            if (!_dir)
+            {
+                LOGL("Failed to open log directory");
+
+                _lastDeleteDate = TimeManager::getDateString();
+
+                return;
+            }
+        }
+
+        // If we haven't opened a file yet, grab the next one
+        if (!_currentFile)
+        {
+            _currentFile = _dir.openNextFile();
+            if (!_currentFile)
+            {
+                // All files have been processed
+                _dir.close();
+                _currentFile = File();
+
+                _lastDeleteDate = TimeManager::getDateString();
+                return;
+            }
+        }
+
+        // Process the current file
+        String filename = _currentFile.name();
+
+        if (shouldDeleteFile(filename))
+        {
+            LOGL("Deleting old file: " + filename);
+            SD.remove(filename); // Delete the file
+        }
+
+        _currentFile.close();
+        _currentFile = File(); // Move to the next file on the next loop
+
+        _lastDeleteDate = TimeManager::getDateString(); // Mark as completed for today
     }
 };

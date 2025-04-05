@@ -58,7 +58,7 @@ public:
 
     static void log(const String &msg, bool newLine = true)
     {
-        String line = "[" + TimeManager::getFormattedTime() + "] " + msg;
+        String line = "[" + TimeManager::getDateTimeString() + "] " + msg;
 
         if (serialEnabled)
         {
