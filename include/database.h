@@ -29,10 +29,9 @@ private:
     // Helper function to check if the file should be deleted (older than 30 days)
     bool shouldDeleteFile(String path, bool isEntry)
     {
-        String _path = getFileName(TimeManager::getDateString(), isEntry);
+        String _path = getFileName(TimeManager::getDateDaysAgoString(30), isEntry);
 
         return path.equals(_path);
-        // return TimeManager::getDateDaysAgoString(30) > fileDate;
     }
 
 public:
@@ -45,17 +44,17 @@ public:
     {
         if (!SD.begin())
         {
-            // LOGL("SD: Card initialization failed!");
+            LOGL("SD: Card initialization failed!");
             return;
         }
 
-        // LOGL(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
+        LOGL(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
 
         if (!SD.exists(baseDir))
         {
             if (!SD.mkdir(baseDir))
             {
-                // LOGL("SD: Failed to create base directory!");
+                LOGL("SD: Failed to create base directory!");
                 return;
             }
         }
@@ -64,7 +63,7 @@ public:
         {
             if (!SD.mkdir(logDir))
             {
-                // LOGL("SD: Failed to create log directory!");
+                LOGL("SD: Failed to create log directory!");
                 return;
             }
         }
@@ -73,7 +72,7 @@ public:
         {
             if (!SD.mkdir(entriesDir))
             {
-                // LOGL("SD: Failed to create entries directory!");
+                LOGL("SD: Failed to create entries directory!");
                 return;
             }
         }
@@ -84,7 +83,7 @@ public:
     {
         if (levelData == nullptr)
         {
-            // LOGL("SD: Null water level data received.");
+            LOGL("SD: Null water level data received.");
             return;
         }
 
@@ -106,7 +105,7 @@ public:
         }
         else
         {
-            // LOGL("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
+            LOGL("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
         }
     }
 
@@ -126,7 +125,7 @@ public:
         }
         else
         {
-            // LOGL("SD: Error opening file for writing");
+            LOGL("SD: Error opening file for writing");
         }
     }
 
@@ -155,12 +154,20 @@ public:
 
         String filename = getFileName(date, isEntry);
 
+        if (!SD.exists(filename))
+        {
+            request->send(404, "text/plain", "File not found");
+            return;
+        }
+
+        String _filename = getFileName(TimeManager::getDateString(), isEntry);
+
         AsyncWebServerResponse *resp = request->beginResponse(
             SD,
             filename,
             "text/csv");
 
-        if (TimeManager::getDateString().equals(filename))
+        if (_filename.equals(filename))
         {
             // today’s file → always re‑validate
             resp->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
@@ -196,11 +203,8 @@ public:
             return;
         }
 
-        // Set up the response stream
-        AsyncResponseStream *response = new AsyncResponseStream("text/plain", 200);
-        request->send(response);
+        String fileNames;
 
-        // Stream the file names progressively
         while (true)
         {
             File entry = dir.openNextFile();
@@ -210,14 +214,14 @@ public:
                 break; // No more files
             }
 
-            String fileName = String(entry.name()) + "\n";
-
-            response->write(fileName.c_str());
+            fileNames += String(entry.name()) + "\n";
 
             entry.close();
         }
 
         dir.close();
+
+        request->send(200, "text/plain", fileNames.c_str());
     }
 
     // Method to delete files older than a month
@@ -236,7 +240,7 @@ public:
             _dir = SD.open(isEntry ? entriesDir : logDir);
             if (!_dir)
             {
-                // LOGL("SD: Failed to open directory for deletion");
+                LOGL("SD: Failed to open directory for deletion");
 
                 if (isEntry)
                 {
@@ -252,7 +256,7 @@ public:
             }
             else
             {
-                // LOGL("SD: Opened directory for deletion");
+                LOGL("SD: Opened directory for deletion");
             }
         }
 
@@ -284,10 +288,10 @@ public:
 
         if (shouldDeleteFile(filePath, isEntry))
         {
-            // LOGL("SD: Deleting old file: " + filePath);
+            LOGL("SD: Deleting old file: " + filePath);
             if (!SD.remove(filePath))
             {
-                // LOGL("SD: Failed to delete file: " + filePath);
+                LOGL("SD: Failed to delete file: " + filePath);
             }
         }
 

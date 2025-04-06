@@ -61,6 +61,8 @@ void loop()
     TimeManager::updateTime();
     OtaManager::handle();
 
+    database.deleteOldFiles();
+
     buzzer.update();
     led.blink();
 
