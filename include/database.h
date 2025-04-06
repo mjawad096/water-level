@@ -3,10 +3,10 @@
 #include <ArduinoJson.h>
 #include <SPI.h>
 #include <SD.h>
-// #include <logger.h>
 #include <time_manager.h>
-#include <waterlevel.h>
+#include <waterlevel-data.h>
 #include <ESPAsyncWebServer.h>
+#include <telnet_logger.h>
 
 class Database
 {
@@ -15,15 +15,17 @@ private:
     const char *logDir = "/waterlevel/logs";
     const char *entriesDir = "/waterlevel/entries";
 
+    bool _isSetup = false;
+
     // Parameters for deletion
     String _lastDeleteDate = "";
     File _dir;
     File _currentFile;
     int _dirIndex = 0;
 
-    String getFileName(String date, bool isEntry = true)
+    String getFileName(const String &date, bool isEntry = true)
     {
-        return String(isEntry ? entriesDir : logDir) + "/" + date + ".csv";
+        return String(isEntry ? entriesDir : logDir) + "/" + date + String(isEntry ? ".csv" : ".log");
     }
 
     // Helper function to check if the file should be deleted (older than 30 days)
@@ -44,17 +46,17 @@ public:
     {
         if (!SD.begin())
         {
-            LOGL("SD: Card initialization failed!");
+            TelnetLogger::log("SD: Card initialization failed!");
             return;
         }
 
-        LOGL(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
+        TelnetLogger::log(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
 
         if (!SD.exists(baseDir))
         {
             if (!SD.mkdir(baseDir))
             {
-                LOGL("SD: Failed to create base directory!");
+                TelnetLogger::log("SD: Failed to create base directory!");
                 return;
             }
         }
@@ -63,7 +65,7 @@ public:
         {
             if (!SD.mkdir(logDir))
             {
-                LOGL("SD: Failed to create log directory!");
+                TelnetLogger::log("SD: Failed to create log directory!");
                 return;
             }
         }
@@ -72,18 +74,26 @@ public:
         {
             if (!SD.mkdir(entriesDir))
             {
-                LOGL("SD: Failed to create entries directory!");
+                TelnetLogger::log("SD: Failed to create entries directory!");
                 return;
             }
         }
+
+        _isSetup = true;
     }
 
     // Method to log data for today in CSV format
     void saveLevelEntry(WaterLevelData *levelData)
     {
+        if (!_isSetup)
+        {
+            TelnetLogger::log("SD: SD card not initialized.");
+            return;
+        }
+
         if (levelData == nullptr)
         {
-            LOGL("SD: Null water level data received.");
+            TelnetLogger::log("SD: Null water level data received.");
             return;
         }
 
@@ -105,12 +115,18 @@ public:
         }
         else
         {
-            LOGL("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
+            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
         }
     }
 
-    void saveLogEntry(String message)
+    void saveLogEntry(const String &message)
     {
+        if (!_isSetup)
+        {
+            TelnetLogger::log("SD: SD card not initialized.");
+            return;
+        }
+
         String currentDate = TimeManager::getDateString();
         String filename = getFileName(currentDate, false);
 
@@ -119,18 +135,26 @@ public:
 
         if (file)
         {
-            file.print(TimeManager::getDateTimeString());
-            file.print(",");
-            file.print(message);
+            // Write the data in CSV format: timestamp, level, distance, isPumpOn
+            file.printf("[%s] %s\n",
+                        TimeManager::getDateTimeString().c_str(),
+                        message.c_str());
+            file.close();
         }
         else
         {
-            LOGL("SD: Error opening file for writing");
+            TelnetLogger::log("SD: Error opening file for writing");
         }
     }
 
     void streamFile(AsyncWebServerRequest *request)
     {
+        if (!_isSetup)
+        {
+            request->send(500, "text/plain", "SD card not initialized");
+            return;
+        }
+
         bool isEntry = true;
         String date = TimeManager::getDateString();
 
@@ -165,13 +189,12 @@ public:
         AsyncWebServerResponse *resp = request->beginResponse(
             SD,
             filename,
-            "text/csv");
+            isEntry ? "text/csv" : "text/plain");
 
         if (_filename.equals(filename))
         {
             // today’s file → always re‑validate
             resp->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-
             resp->addHeader("Pragma", "no-cache");
             resp->addHeader("Expires", "0");
         }
@@ -186,6 +209,12 @@ public:
 
     void listFiles(AsyncWebServerRequest *request)
     {
+        if (!_isSetup)
+        {
+            request->send(500, "text/plain", "SD card not initialized");
+            return;
+        }
+
         String fileList;
         bool isEntry = true;
 
@@ -227,6 +256,12 @@ public:
     // Method to delete files older than a month
     void deleteOldFiles()
     {
+        if (!_isSetup)
+        {
+            TelnetLogger::log("SD: SD card not initialized.");
+            return;
+        }
+
         if (TimeManager::getDateString().equals(_lastDeleteDate))
         {
             return;
@@ -240,7 +275,7 @@ public:
             _dir = SD.open(isEntry ? entriesDir : logDir);
             if (!_dir)
             {
-                LOGL("SD: Failed to open directory for deletion");
+                TelnetLogger::log("SD: Failed to open directory for deletion");
 
                 if (isEntry)
                 {
@@ -256,7 +291,7 @@ public:
             }
             else
             {
-                LOGL("SD: Opened directory for deletion");
+                TelnetLogger::log("SD: Opened directory for deletion");
             }
         }
 
@@ -288,10 +323,10 @@ public:
 
         if (shouldDeleteFile(filePath, isEntry))
         {
-            LOGL("SD: Deleting old file: " + filePath);
+            TelnetLogger::log("SD: Deleting old file: " + filePath);
             if (!SD.remove(filePath))
             {
-                LOGL("SD: Failed to delete file: " + filePath);
+                TelnetLogger::log("SD: Failed to delete file: " + filePath);
             }
         }
 

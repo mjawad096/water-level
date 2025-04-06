@@ -28,10 +28,12 @@ void setup()
 {
     Serial.begin(115200);
 
+    Logger::setup(&database);
+
     led.setup();
     buzzer.setup();
 
-    LOGL("Initializing the databse...");
+    LOGL("Initializing the database...");
 
     database.setup();
 
