@@ -85,16 +85,27 @@ public:
         }
     }
 
-    static String logf(const char *format, ...)
+    static String logf(const char *format, va_list args)
     {
         char buffer[128];
-        va_list args;
-        va_start(args, format);
         vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
         log(buffer);
 
         return String(buffer);
+    }
+
+    static String logf(const char *format, ...)
+    {
+        String message;
+
+        va_list args;
+        va_start(args, format);
+
+        message = logf(format, args);
+
+        va_end(args);
+
+        return String(message);
     }
 
     static bool isClientConnected()

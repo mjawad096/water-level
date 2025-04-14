@@ -20,7 +20,7 @@ private:
     const float referenceVoltage = 3.3;  // Maximum voltage for esp32
 
     float current = 0;   // Current in Amperes
-    float threshold = 2; // Current threshold to be considered as flowing
+    float threshold = 3; // Current threshold to be considered as flowing
 
     // Noise filtering parameters
     const int numReadings = 20; // Number of readings for averaging
@@ -69,7 +69,7 @@ public:
 
         if (readIndex == 0)
         {
-            current = getCurrent(); // Update current if we have cycled through all readings
+            current = filterCurrent(); // Update current if we have cycled through all readings
 
             resetReadings(); // Reset readings if we have cycled through all
 
@@ -77,7 +77,7 @@ public:
         }
     }
 
-    float getCurrent()
+    float filterCurrent()
     {
         float maxReading = readings[0]; // Initialize maxReading with the first element
 
@@ -91,6 +91,11 @@ public:
         }
 
         return maxReading; // Return the maximum value found
+    }
+
+    float getCurrent()
+    {
+        return current; // Return the current value
     }
 
     bool isCurrentFlowing()

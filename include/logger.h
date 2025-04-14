@@ -28,7 +28,9 @@ public:
     {
         va_list args;
         va_start(args, format);
+
         const String message = TelnetLogger::logf(format, args);
+
         va_end(args);
 
         if (database)
@@ -39,7 +41,9 @@ public:
     {
         va_list args;
         va_start(args, format);
+
         TelnetLogger::logf(format, args);
+
         va_end(args);
     }
 };

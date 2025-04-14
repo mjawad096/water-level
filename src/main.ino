@@ -19,6 +19,7 @@ Led led;
 Buzzer buzzer;
 
 int level = -1;
+bool isPumpOn = false;
 
 unsigned int continueInvalidLevelCount = 0;
 
@@ -74,6 +75,13 @@ void loop()
     mySwitch.checkForManualSwitchRequested();
     mySwitch.checkForInternalSwitchChange();
 
+    if (isPumpOn != currentSensor.isCurrentFlowing())
+    {
+        processWaterLevel();
+    }
+
+    isPumpOn = currentSensor.isCurrentFlowing();
+
     webServer.checkForReboot();
 
     reset.checkForReset();
@@ -115,9 +123,7 @@ void loop()
 
     lastPingTime = millis();
 
-    WaterLevelData levelData = waterLevel.getLevel();
-
-    processWaterLevel(&levelData);
+    processWaterLevel();
 
     mySwitch.handlePendingState();
 }
@@ -132,34 +138,30 @@ bool isHighLevel()
     return level != -1 && level > settings.fullThreshold && currentSensor.isCurrentFlowing();
 }
 
-void processWaterLevel(WaterLevelData *levelData)
+void processWaterLevel()
 {
-    if (levelData == nullptr)
-    {
-        LOGL("Error: Null water level data received.");
-        return;
-    }
+    WaterLevelData levelData = waterLevel.getLevel();
 
     // Filter out the noise
-    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && (level - levelData->level) >= 4 && continueInvalidLevelCount < 5)
+    if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData.level) >= 4 && continueInvalidLevelCount < 9)
     {
-        levelData->level = level;
-        levelData->distance = levelData->distance * -1;
+        levelData.level = level;
+        levelData.distance = levelData.distance * -1;
 
         continueInvalidLevelCount++;
     }
     else
     {
-        level = levelData->level;
+        level = levelData.level;
 
         continueInvalidLevelCount = 0;
     }
 
-    webServer.setWaterLevel(levelData);
+    webServer.setWaterLevel(&levelData);
 
-    espNow.sendWaterLevel(levelData);
+    espNow.sendWaterLevel(&levelData);
 
-    display.displayLevel(levelData);
+    display.displayLevel(&levelData);
 
-    database.saveLevelEntry(levelData);
+    database.saveLevelEntry(&levelData);
 }

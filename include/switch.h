@@ -46,6 +46,8 @@ public:
 
     void handlePendingState()
     {
+        LOGF("Handling pending State: %d, Current state: %d, Current: %.2f ", pendingState, currentSensor->isCurrentFlowing(), currentSensor->getCurrent());
+
         if (pendingState == -1 || pendingState == currentSensor->isCurrentFlowing())
         {
             return;
