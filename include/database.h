@@ -8,12 +8,20 @@
 #include <ESPAsyncWebServer.h>
 #include <telnet_logger.h>
 
+enum LogType
+{
+    LOG,
+    ENTRY,
+    CRASH_LOG
+};
+
 class Database
 {
 private:
     const char *baseDir = "/waterlevel";
     const char *logDir = "/waterlevel/logs";
     const char *entriesDir = "/waterlevel/entries";
+    const char *crashLogDir = "/waterlevel/crash_logs";
 
     bool _isSetup = false;
 
@@ -23,17 +31,101 @@ private:
     File _currentFile;
     int _dirIndex = 0;
 
-    String getFileName(const String &date, bool isEntry = true)
+    String getDirForType(LogType logType)
     {
-        return String(isEntry ? entriesDir : logDir) + "/" + date + String(isEntry ? ".csv" : ".log");
+        switch (logType)
+        {
+        case LogType::LOG:
+            return logDir;
+        case LogType::ENTRY:
+            return entriesDir;
+        case LogType::CRASH_LOG:
+            return crashLogDir;
+        }
+        return "";
+    }
+
+    String getFileName(const String &date, LogType logType)
+    {
+        return getDirForType(logType) + "/" + date + String(logType == LogType::ENTRY ? ".csv" : ".log");
     }
 
     // Helper function to check if the file should be deleted (older than 30 days)
-    bool shouldDeleteFile(String path, bool isEntry)
+    bool shouldDeleteFile(String path, LogType logType)
     {
-        String _path = getFileName(TimeManager::getDateDaysAgoString(30), isEntry);
+        String _path = getFileName(TimeManager::getDateDaysAgoString(30), logType);
 
         return path.equals(_path);
+    }
+
+    LogType getLogTypeFromString(int type)
+    {
+        return getLogTypeFromString(String(type));
+    }
+
+    LogType getLogTypeFromString(const String &type)
+    {
+        String typeLower = type;
+        typeLower.toLowerCase();
+
+        if (typeLower == "log" || typeLower == "0")
+        {
+            return LogType::LOG;
+        }
+        else if (typeLower == "entry" || typeLower == "1")
+        {
+            return LogType::ENTRY;
+        }
+        else if (typeLower == "crash_log" || typeLower == "2")
+        {
+            return LogType::CRASH_LOG;
+        }
+
+        return LogType::ENTRY; // Default case
+    }
+
+    void moveIndexForDeletion()
+    {
+        if (_dirIndex < 2)
+        {
+            _dirIndex++;
+        }
+        else
+        {
+            _dirIndex = 0;
+            _lastDeleteDate = TimeManager::getDateString();
+        }
+    }
+
+    String resetReasonToString(esp_reset_reason_t reason)
+    {
+        switch (reason)
+        {
+        case ESP_RST_UNKNOWN:
+            return "Unknown reset reason";
+        case ESP_RST_POWERON:
+            return "Power-on reset";
+        case ESP_RST_EXT:
+            return "External reset";
+        case ESP_RST_SW:
+            return "Software reset";
+        case ESP_RST_PANIC:
+            return "Panic reset";
+        case ESP_RST_INT_WDT:
+            return "Interrupt watchdog reset";
+        case ESP_RST_TASK_WDT:
+            return "Task watchdog reset";
+        case ESP_RST_WDT:
+            return "General watchdog reset";
+        case ESP_RST_DEEPSLEEP:
+            return "Deep sleep wakeup reset";
+        case ESP_RST_BROWNOUT:
+            return "Brownout reset";
+        case ESP_RST_SDIO:
+            return "SDIO reset";
+        default:
+            return "Unknown reset reason (" + String((int)reason) + ")";
+        }
     }
 
 public:
@@ -49,6 +141,8 @@ public:
             TelnetLogger::log("SD: Card initialization failed!");
             return;
         }
+
+        _isSetup = true;
 
         TelnetLogger::log(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
 
@@ -79,7 +173,48 @@ public:
             }
         }
 
-        _isSetup = true;
+        if (!SD.exists(crashLogDir))
+        {
+            if (!SD.mkdir(crashLogDir))
+            {
+                TelnetLogger::log("SD: Failed to create crash log directory!");
+                return;
+            }
+        }
+    }
+
+    void logResetReason()
+    {
+        if (!_isSetup)
+        {
+            TelnetLogger::log("SD: Card not initialized (logResetReason).");
+            return;
+        }
+
+        String currentDate = TimeManager::getDateString();
+        String filename = getFileName(currentDate, LogType::CRASH_LOG);
+
+        // Open the file for appending
+        File file = SD.open(filename, FILE_APPEND);
+
+        if (file)
+        {
+            String logMessage = "";
+            esp_reset_reason_t reason = esp_reset_reason();
+
+            logMessage += "===== Boot =====\n";
+            logMessage += "Date time: " + TimeManager::getDateTimeString() + "\n";
+            logMessage += "Uptime (ms): " + String(millis()) + "\n";
+            logMessage += "Reset Reason: " + resetReasonToString(reason) + "\n";
+            logMessage += "================\n";
+
+            file.println(logMessage);
+            file.close();
+        }
+        else
+        {
+            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(crashLogDir)));
+        }
     }
 
     // Method to log data for today in CSV format
@@ -87,7 +222,7 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: SD card not initialized.");
+            TelnetLogger::log("SD: Card not initialized (saveLevelEntry).");
             return;
         }
 
@@ -98,7 +233,7 @@ public:
         }
 
         String currentDate = TimeManager::getDateString();
-        String filename = getFileName(currentDate);
+        String filename = getFileName(currentDate, LogType::ENTRY);
 
         // Open the file for appending
         File file = SD.open(filename, FILE_APPEND);
@@ -123,12 +258,12 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: SD card not initialized.");
+            TelnetLogger::log("SD: Card not initialized (saveLogEntry).");
             return;
         }
 
         String currentDate = TimeManager::getDateString();
-        String filename = getFileName(currentDate, false);
+        String filename = getFileName(currentDate, LogType::LOG);
 
         // Open the file for appending
         File file = SD.open(filename, FILE_APPEND);
@@ -143,7 +278,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing");
+            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(logDir)));
         }
     }
 
@@ -155,13 +290,15 @@ public:
             return;
         }
 
-        bool isEntry = true;
+        LogType logType = LogType::ENTRY;
+
         String date = TimeManager::getDateString();
 
-        if (request->hasParam("loggs", false))
+        if (request->hasParam("type", false))
         {
-            AsyncWebParameter *p = request->getParam("loggs", false);
-            isEntry = p->value() != "true";
+            AsyncWebParameter *p = request->getParam("type", false);
+
+            logType = getLogTypeFromString(p->value());
         }
 
         if (request->hasParam("date", false))
@@ -176,7 +313,7 @@ public:
             return;
         }
 
-        String filename = getFileName(date, isEntry);
+        String filename = getFileName(date, logType);
 
         if (!SD.exists(filename))
         {
@@ -184,12 +321,12 @@ public:
             return;
         }
 
-        String _filename = getFileName(TimeManager::getDateString(), isEntry);
+        String _filename = getFileName(TimeManager::getDateString(), logType);
 
         AsyncWebServerResponse *resp = request->beginResponse(
             SD,
             filename,
-            isEntry ? "text/csv" : "text/plain");
+            logType == LogType::ENTRY ? "text/csv" : "text/plain");
 
         if (_filename.equals(filename))
         {
@@ -216,15 +353,17 @@ public:
         }
 
         String fileList;
-        bool isEntry = true;
 
-        if (request->hasParam("loggs", false))
+        LogType logType = LogType::ENTRY;
+
+        if (request->hasParam("type", false))
         {
-            AsyncWebParameter *p = request->getParam("loggs", false);
-            isEntry = p->value() != "true";
+            AsyncWebParameter *p = request->getParam("type", false);
+
+            logType = getLogTypeFromString(p->value());
         }
 
-        File dir = SD.open(isEntry ? entriesDir : logDir);
+        File dir = SD.open(getDirForType(logType));
 
         if (!dir)
         {
@@ -284,7 +423,7 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: SD card not initialized.");
+            TelnetLogger::log("SD: Card not initialized (deleteOldFiles).");
             return;
         }
 
@@ -293,25 +432,21 @@ public:
             return;
         }
 
-        bool isEntry = _dirIndex == 0;
+        LogType logType = getLogTypeFromString(_dirIndex);
 
         // If we haven't opened the directory yet, do it now
         if (!_dir)
         {
-            _dir = SD.open(isEntry ? entriesDir : logDir);
+            _dir = SD.open(getDirForType(logType));
+
             if (!_dir)
             {
-                TelnetLogger::log("SD: Failed to open directory for deletion");
+                TelnetLogger::log("SD: Failed to open directory for deletion for type: " + String((int)logType));
 
-                if (isEntry)
-                {
-                    _dirIndex++;
-                }
-                else
-                {
-                    _dirIndex = 0;
-                    _lastDeleteDate = TimeManager::getDateString();
-                }
+                _dir = File();
+                _currentFile = File();
+
+                moveIndexForDeletion();
 
                 return;
             }
@@ -325,21 +460,17 @@ public:
         if (!_currentFile)
         {
             _currentFile = _dir.openNextFile();
+
             if (!_currentFile)
             {
                 // All files have been processed
                 _dir.close();
+
+                _dir = File();
                 _currentFile = File();
 
-                if (isEntry)
-                {
-                    _dirIndex++;
-                }
-                else
-                {
-                    _dirIndex = 0;
-                    _lastDeleteDate = TimeManager::getDateString();
-                }
+                moveIndexForDeletion();
+
                 return;
             }
         }
@@ -347,9 +478,10 @@ public:
         // Process the current file
         String filePath = _currentFile.path();
 
-        if (shouldDeleteFile(filePath, isEntry))
+        if (shouldDeleteFile(filePath, logType))
         {
             TelnetLogger::log("SD: Deleting old file: " + filePath);
+
             if (!SD.remove(filePath))
             {
                 TelnetLogger::log("SD: Failed to delete file: " + filePath);
@@ -359,14 +491,6 @@ public:
         _currentFile.close();
         _currentFile = File(); // Move to the next file on the next loop
 
-        if (isEntry)
-        {
-            _dirIndex++;
-        }
-        else
-        {
-            _dirIndex = 0;
-            _lastDeleteDate = TimeManager::getDateString();
-        }
+        moveIndexForDeletion();
     }
 };

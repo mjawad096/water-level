@@ -54,6 +54,8 @@ void setup()
 
     webServer.setup(&settings, &currentSensor, &mySwitch, &database);
 
+    database.logResetReason();
+
     led.off();
     buzzer.stop(true);
 }
