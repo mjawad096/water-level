@@ -53,39 +53,44 @@
                 </div>
               </div> 
 
-              <div x-show="!loading" class="box">
+              <div x-show="!loading" class="box justify-between flex-row">
                 <div>
                   Is Pump On:
                   <span
                     x-text="isPumpOn ? 'YES': 'NO'"
                   ></span>
                 </div>
-              </div> 
-              <div x-show="!loading" class="box justify-between flex-row">
-                <span>
-                  Pump Actions:  
-                </span>
 
                 <div>
-                  <button
-                    type="button"
+                  <button type="button"
                     class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
-                    x-bind:disabled="loading"
-                    @click="startPump"
-                    x-show="!isPumpOn"
-                  >
+                    x-bind:disabled="loading" @click="startPump" x-show="!isPumpOn">
                     Start
                   </button>
-                  <button
-                    type="button"
+                  <button type="button"
                     class="inline-flex ml-2 items-center px-4 ml-2 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150 bg-red-500 dark:bg-red-500"
-                    x-bind:disabled="loading"
-                    @click="stopPump"
-                    x-show="isPumpOn"
-                  >
-                  Stop
+                    x-bind:disabled="loading" @click="stopPump" x-show="isPumpOn">
+                    Stop
                   </button>
+                </div>
+              </div> 
+              <div x-show="!loading" class="box justify-between flex-row">
+                <div>
+                  SD Card:
+                  <span x-show="sdInfo.total > 0">
+                    <span x-text="sdInfo.usedStr"></span> /
+                    <span x-text="sdInfo.totalStr"></span>
+                    (<span x-text="sdInfo.precent"></span> % used)
+                  </span>
+                  <span x-show="sdInfo.total == 0">Not Available</span>
+                </div>
 
+                <div>
+                  <button type="button"
+                    class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
+                    x-bind:disabled="loading" @click="loadSdInfo(true)" x-show="sdInfo.total > 0">
+                    Refresh
+                  </button>
                 </div>
               </div>
 
@@ -94,17 +99,6 @@
                   Distance: <span x-text="deviceToWaterDistance"></span>
                 </div>
               </div>
-
-              <template x-for="(switchState, index) in switchStates" :key="index">
-                <div class="box">
-                  <div>
-                    Switch State:  <span x-text="switchState.state ? 'ON' : 'OFF'"></span><br>
-                    Is Manual: <span x-text="switchState.isManual ? 'YES' : 'NO'"></span><br>
-                    Level: <span><span x-text="switchState.level"></span><br>
-                    Time: <span><span x-text="switchState.time"></span>
-                  </div>
-                </div>
-              </template>
             </div>
           </div>
           <div class="settings">
@@ -354,11 +348,45 @@
     <script>
       document.addEventListener("alpine:init", () => {
         Alpine.data("mainComponent", () => ({
-          endpoint: "http://192.168.4.1",
+          endpoint: "http://esp32-waterlevel.local",
 
           showWifiPass: false,
           showSettings: false,
           wifiStatus: false,
+
+          sdInfo: {
+            total: 0,
+            used: 0,
+            free: 0,
+
+            get usedStr(){
+              if(this.used > 1024){
+                return (this.used / 1024).toFixed(2) + " GB";
+              }
+
+              return this.used.toFixed(2) + " MB";
+            },
+
+            get totalStr(){
+              if(this.total > 1024){
+                return (this.total / 1024).toFixed(2) + " GB";
+              }
+
+              return this.total.toFixed(2) + " MB";
+            },
+
+            get freeStr(){
+              if(this.free > 1024){
+                return (this.free / 1024).toFixed(2) + " GB";
+              }
+
+              return this.free.toFixed(2) + " MB";
+            },
+
+            get precent() {
+              return ((this.used / this.total) * 100).toFixed(2);
+            },
+          },
 
           waterLevel: 0,
           deviceToWaterDistance: 0,
@@ -386,7 +414,9 @@
           loading: true,
 
           init() {
-            this.endpoint = window.location.origin;
+            if(window.location.hostname !== "localhost"){
+              this.endpoint = window.location.origin;
+            }
 
             this.setupEvent();
           },
@@ -401,6 +431,7 @@
                   this.connected = true;
 
                   this.loadSettings();
+                  this.loadSdInfo();
 
                   console.log("Events Connected");
                 },
@@ -550,6 +581,21 @@
               this.settings_form.empty_threshold = data.emptyThreshold;
               this.settings_form.auto_off_on_full = data.autoOffOnFull;
               this.settings_form.auto_on_on_empty = data.autoOnOnEmpty;
+            }
+          },
+
+          async loadSdInfo(notify) {
+            let response = await this.get(`${this.endpoint}/sd-info`);
+            if (response.status == 200 && response.data) {
+              let data = response.data;
+
+              this.sdInfo.total = data.total;
+              this.sdInfo.used = data.used;
+              this.sdInfo.free = data.free;
+
+              if(notify){
+                alert("SD Card Info Loaded");
+              }
             }
           },
 

@@ -253,6 +253,32 @@ public:
         request->send(200, "text/plain", fileNames.c_str());
     }
 
+    void getSDInfo(AsyncWebServerRequest *request)
+    {
+        if (!_isSetup)
+        {
+            request->send(500, "text/plain", "SD card not initialized");
+            return;
+        }
+
+        double bytesInMb = 1024.0 * 1024.0;
+
+        double total = SD.cardSize() / bytesInMb;
+        double used = SD.usedBytes() / bytesInMb;
+        double free = total - used;
+
+        // Buffer for formatted output
+        char buffer[200];
+
+        sprintf(buffer,
+                "{\"total\":%.2f,\"used\":%.2f,\"free\": %.2f}",
+                total,
+                used,
+                free);
+
+        request->send(200, "application/json", buffer);
+    }
+
     // Method to delete files older than a month
     void deleteOldFiles()
     {

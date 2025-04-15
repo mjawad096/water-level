@@ -114,6 +114,14 @@ public:
           this->database->streamFile(request);
         });
 
+    server->on(
+        "/sd-info",
+        HTTP_GET,
+        [this](AsyncWebServerRequest *request)
+        {
+          this->database->getSDInfo(request);
+        });
+
     events->onConnect(
         [](AsyncEventSourceClient *client)
         {

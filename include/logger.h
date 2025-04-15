@@ -20,7 +20,7 @@ public:
     {
         TelnetLogger::log(message, newLine);
 
-        if (!noDatabase && database)
+        if (!noDatabase && database != nullptr)
             database->saveLogEntry(message);
     }
 
@@ -33,8 +33,7 @@ public:
 
         va_end(args);
 
-        if (database)
-            database->saveLogEntry(message);
+        database->saveLogEntry(message);
     }
 
     static void logfnd(const char *format, ...)

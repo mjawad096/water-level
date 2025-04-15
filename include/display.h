@@ -36,6 +36,8 @@ public:
         }
         else
         {
+            LOGL(F("SSD1306 initialized successfully"));
+
             dispalyInitialized = true;
         }
 

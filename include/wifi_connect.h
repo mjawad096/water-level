@@ -48,9 +48,7 @@ public:
 
         IPAddress IP = WiFi.softAPIP();
 
-        LOGL(" -- AP started --");
-        LOGL("SSID: " + apSSID);
-        LOGL("IP Address: " + IP.toString());
+        LOGF(" -- AP started --\nSSID: %s\nIP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
 
         display->setApSSID(apSSID);
         display->displayText("AP: " + apSSID, false);
