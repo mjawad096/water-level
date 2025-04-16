@@ -52,11 +52,11 @@ void loop()
 
     if (isLowLevel())
     {
-        buzzer.start(2, 60000, 400);
+        buzzer.start(2, 3600000, 400); // 1 hour
     }
     else if (isHighLevel())
     {
-        buzzer.start(3, 60000, 200);
+        buzzer.start(3, 3600000, 200); // 1 hour
     }
     else
     {
