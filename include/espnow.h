@@ -18,14 +18,18 @@ private:
     WifiConnect wifiConnect;
 
 public:
-    void setup(Setting *settings, Display *display, Led *led)
+    void setup(Setting *settings, Display *display, Led *led, Database *database)
     {
-        wifiConnect.setup(settings, display, led);
+        wifiConnect.setup(settings, display, led, database);
 
         if (esp_now_init() != ESP_OK)
         {
             LOGL("Error initializing ESP-NOW");
             return;
+        }
+        else
+        {
+            LOGL("ESP-NOW initialized successfully");
         }
 
         esp_now_register_send_cb(OnDataSent);
@@ -42,6 +46,10 @@ public:
             LOGL("Failed to add peer");
             return;
         }
+        else
+        {
+            LOGL("Peer 1 added successfully");
+        }
 
         // register second peer
         memcpy(peerInfo.peer_addr, broadcastAddress2, 6);
@@ -49,6 +57,10 @@ public:
         {
             LOGL("Failed to add peer");
             return;
+        }
+        else
+        {
+            LOGL("Peer 2 added successfully");
         }
 
         esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));

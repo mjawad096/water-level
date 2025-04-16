@@ -21,7 +21,7 @@ public:
         TelnetLogger::log(message, newLine);
 
         if (!noDatabase && database != nullptr)
-            database->saveLogEntry(message);
+            database->saveLogEntry(message, newLine);
     }
 
     static void logf(const char *format, ...)

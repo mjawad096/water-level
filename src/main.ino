@@ -34,19 +34,16 @@ void setup()
     led.setup();
     buzzer.setup();
 
-    LOGL("Initializing the database...");
-
-    database.setup();
-
-    LOGL("Starting setup...");
-
     display.setup();
-
     display.displayText("Initializing...", false);
 
     settings.load();
+    display.displayText("Settings loaded...", false);
 
-    espNow.setup(&settings, &display, &led);
+    espNow.setup(&settings, &display, &led, &database);
+
+    LOGL("Settings loaded...");
+
     reset.setup(&settings);
     waterLevel.setup(&settings, &currentSensor);
 
@@ -65,8 +62,6 @@ void loop()
     TelnetLogger::handleClient();
     TimeManager::updateTime();
     OtaManager::handle();
-
-    database.deleteOldFiles();
 
     buzzer.update();
     led.blink();
@@ -128,6 +123,8 @@ void loop()
     processWaterLevel();
 
     mySwitch.handlePendingState();
+
+    database.deleteOldFiles();
 }
 
 bool isLowLevel()

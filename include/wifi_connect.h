@@ -14,6 +14,7 @@ private:
     Setting *settings;
     Display *display;
     Led *led;
+    Database *database;
 
     unsigned long previousMillis = 0;
     const unsigned long interval = 300000;
@@ -23,11 +24,12 @@ public:
     {
     }
 
-    void setup(Setting *settings, Display *display, Led *led)
+    void setup(Setting *settings, Display *display, Led *led, Database *database)
     {
         this->settings = settings;
         this->display = display;
         this->led = led;
+        this->database = database;
 
         WiFi.mode(WIFI_AP_STA);
 
@@ -36,8 +38,28 @@ public:
         connectWifi();
 
         TimeManager::setup();
+
+        database->setup();
+
+        LOGL("\n\n --- Database initialized --- ");
+
         TelnetLogger::setup();
         OtaManager::setup();
+
+        initMDNS();
+
+        logInfo();
+    }
+
+    void logInfo()
+    {
+        IPAddress IP = WiFi.softAPIP();
+        String apSSID = getWifiAPName();
+
+        LOGF("AP started -> SSID: %s, IP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
+
+        display->setApSSID(apSSID);
+        display->displayText("AP: " + apSSID, false);
     }
 
     void setupAccessPoint()
@@ -45,13 +67,6 @@ public:
         String apSSID = getWifiAPName();
 
         WiFi.softAP(apSSID, "", 1, 1);
-
-        IPAddress IP = WiFi.softAPIP();
-
-        LOGF(" -- AP started --\nSSID: %s\nIP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
-
-        display->setApSSID(apSSID);
-        display->displayText("AP: " + apSSID, false);
     }
 
     String getWifiAPName()
@@ -77,6 +92,7 @@ public:
         if (currentMillis - previousMillis >= interval)
         {
             display->displayText("Wifi connection lost. Reconnecting...");
+            LOGL("Wifi connection lost. Reconnecting...");
 
             previousMillis = currentMillis;
 
@@ -108,6 +124,26 @@ public:
             attempt++;
         }
 
+        LOG("\n");
+
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            LOGL("Connected to WiFi.");
+        }
+        else
+        {
+            LOGL("Failed to connect to WiFi.");
+        }
+
+        display->displayText("Connected to WiFi", false);
+
+        delay(2000);
+
+        led->off();
+    }
+
+    void initMDNS()
+    {
         if (WiFi.status() == WL_CONNECTED)
         {
             LOGL("Connected to WiFi.");
@@ -126,11 +162,5 @@ public:
         {
             LOGL("Failed to connect to WiFi.");
         }
-
-        display->displayText("Connected to WiFi", false);
-
-        delay(2000);
-
-        led->off();
     }
 };

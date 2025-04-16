@@ -128,6 +128,60 @@ private:
         }
     }
 
+    void deleteDirectory(const char *dirname)
+    {
+        File dir = SD.open(dirname);
+        if (!dir)
+        {
+            TelnetLogger::log("❌ Directory does not exist: " + String(dirname));
+            return;
+        }
+
+        if (!dir.isDirectory())
+        {
+            TelnetLogger::log("❌ Not a directory: " + String(dirname));
+            dir.close();
+            return;
+        }
+
+        File entry;
+        while ((entry = dir.openNextFile()))
+        {
+            String entryPath = String(dirname) + "/" + entry.name();
+
+            if (entry.isDirectory())
+            {
+                entry.close();
+                deleteDirectory(entryPath.c_str()); // Recursively delete subdirectories
+            }
+            else
+            {
+                entry.close();
+                if (SD.remove(entryPath))
+                {
+                    TelnetLogger::log("🗑️ Deleted file: " + entryPath);
+                }
+                else
+                {
+                    TelnetLogger::log("❌ Failed to delete file: " + entryPath);
+                }
+            }
+
+            yield(); // Let the watchdog chill
+        }
+
+        dir.close();
+
+        if (SD.rmdir(dirname))
+        {
+            TelnetLogger::log("✅ Deleted directory: " + String(dirname));
+        }
+        else
+        {
+            TelnetLogger::log("❌ Failed to delete directory (still not empty?): " + String(dirname));
+        }
+    }
+
 public:
     // Constructor and Destructor
     Database() {}
@@ -196,6 +250,7 @@ public:
 
         // Open the file for appending
         File file = SD.open(filename, FILE_APPEND);
+        yield();
 
         if (file)
         {
@@ -209,6 +264,9 @@ public:
             logMessage += "================\n";
 
             file.println(logMessage);
+
+            yield();
+
             file.close();
         }
         else
@@ -237,6 +295,7 @@ public:
 
         // Open the file for appending
         File file = SD.open(filename, FILE_APPEND);
+        yield();
 
         if (file)
         {
@@ -246,6 +305,9 @@ public:
                         levelData->level,
                         levelData->distance,
                         levelData->isPumpOn ? 1 : 0);
+
+            yield();
+
             file.close();
         }
         else
@@ -254,11 +316,17 @@ public:
         }
     }
 
-    void saveLogEntry(const String &message)
+    void saveLogEntry(const String &message, bool newLine = true)
     {
         if (!_isSetup)
         {
             TelnetLogger::log("SD: Card not initialized (saveLogEntry).");
+            return;
+        }
+
+        if (!TimeManager::isInitialized())
+        {
+            TelnetLogger::log("SD: Time not initialized (saveLogEntry).");
             return;
         }
 
@@ -267,13 +335,21 @@ public:
 
         // Open the file for appending
         File file = SD.open(filename, FILE_APPEND);
+        yield();
 
         if (file)
         {
-            // Write the data in CSV format: timestamp, level, distance, isPumpOn
-            file.printf("[%s] %s\n",
-                        TimeManager::getDateTimeString().c_str(),
-                        message.c_str());
+            if (newLine)
+            {
+                file.printf("[%s] %s\n", TimeManager::getDateTimeString().c_str(), message.c_str());
+            }
+            else
+            {
+                file.print(message.c_str());
+            }
+
+            yield();
+
             file.close();
         }
         else
@@ -293,6 +369,7 @@ public:
         LogType logType = LogType::ENTRY;
 
         String date = TimeManager::getDateString();
+        String _file = "";
 
         if (request->hasParam("type", false))
         {
@@ -307,41 +384,58 @@ public:
             date = p->value();
         }
 
+        if (request->hasParam("file", false))
+        {
+            AsyncWebParameter *p = request->getParam("file", false);
+            _file = p->value();
+        }
+
         if (!TimeManager::isValidDate(date))
         {
             request->send(400, "text/plain", "Invalid date format");
             return;
         }
 
+        if (_file.length() > 0)
+        {
+            date = _file;
+        }
+
         String filename = getFileName(date, logType);
 
         if (!SD.exists(filename))
         {
-            request->send(404, "text/plain", "File not found");
+            request->send(404, "text/plain", "File not found: " + filename);
             return;
         }
 
-        String _filename = getFileName(TimeManager::getDateString(), logType);
+        yield();
 
-        AsyncWebServerResponse *resp = request->beginResponse(
+        AsyncWebServerResponse *response = request->beginResponse(
             SD,
             filename,
             logType == LogType::ENTRY ? "text/csv" : "text/plain");
 
+        yield();
+
+        String _filename = getFileName(TimeManager::getDateString(), logType);
+
         if (_filename.equals(filename))
         {
             // today’s file → always re‑validate
-            resp->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-            resp->addHeader("Pragma", "no-cache");
-            resp->addHeader("Expires", "0");
+            response->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            response->addHeader("Pragma", "no-cache");
+            response->addHeader("Expires", "0");
         }
         else
         {
             // file is older than today → cache for 1 day
-            resp->addHeader("Cache-Control", "public, max-age=86400");
+            response->addHeader("Cache-Control", "public, max-age=86400");
         }
 
-        request->send(resp);
+        yield();
+
+        request->send(response);
     }
 
     void listFiles(AsyncWebServerRequest *request)
@@ -351,8 +445,6 @@ public:
             request->send(500, "text/plain", "SD card not initialized");
             return;
         }
-
-        String fileList;
 
         LogType logType = LogType::ENTRY;
 
@@ -365,6 +457,8 @@ public:
 
         File dir = SD.open(getDirForType(logType));
 
+        yield(); // Yield to allow other tasks to run
+
         if (!dir)
         {
             request->send(500, "text/plain", "Failed to open directory");
@@ -372,24 +466,34 @@ public:
         }
 
         String fileNames;
+        int fileCount = 0;
+        const int maxFiles = 100;
 
-        while (true)
+        AsyncResponseStream *response = request->beginResponseStream("text/plain");
+
+        while (fileCount < maxFiles)
         {
             File entry = dir.openNextFile();
+            yield(); // Yield to allow other tasks to run
 
             if (!entry)
             {
                 break; // No more files
             }
 
-            fileNames += String(entry.name()) + "\n";
+            response->println(entry.name());
+            yield();
 
             entry.close();
+            yield(); // Yield to allow other tasks to run
+
+            fileCount++;
         }
 
         dir.close();
+        yield(); // Yield to allow other tasks to run
 
-        request->send(200, "text/plain", fileNames.c_str());
+        request->send(response);
     }
 
     void getSDInfo(AsyncWebServerRequest *request)
@@ -439,6 +543,8 @@ public:
         {
             _dir = SD.open(getDirForType(logType));
 
+            yield(); // Yield to allow other tasks to run
+
             if (!_dir)
             {
                 TelnetLogger::log("SD: Failed to open directory for deletion for type: " + String((int)logType));
@@ -460,11 +566,13 @@ public:
         if (!_currentFile)
         {
             _currentFile = _dir.openNextFile();
+            yield(); // Yield to allow other tasks to run
 
             if (!_currentFile)
             {
                 // All files have been processed
                 _dir.close();
+                yield(); // Yield to allow other tasks to run
 
                 _dir = File();
                 _currentFile = File();
@@ -486,11 +594,22 @@ public:
             {
                 TelnetLogger::log("SD: Failed to delete file: " + filePath);
             }
+            else
+            {
+                yield(); // Yield to allow other tasks to run
+            }
         }
 
         _currentFile.close();
         _currentFile = File(); // Move to the next file on the next loop
 
+        yield(); // Yield to allow other tasks to run
+
         moveIndexForDeletion();
+    }
+
+    void deleteRoot(LogType logType)
+    {
+        deleteDirectory(getDirForType(logType).c_str());
     }
 };

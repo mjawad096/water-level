@@ -75,6 +75,11 @@ public:
         }
     }
 
+    static bool isInitialized()
+    {
+        return initialized;
+    }
+
     static void updateTime()
     {
         if (!initialized)
