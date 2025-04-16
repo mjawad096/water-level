@@ -27,10 +27,15 @@ private:
     float readings[20];         // Store last `numReadings` readings
     int readIndex = 0;          // Index for the current reading
 
+    const int numMaxPasses = 3; // Number of passes for max value
+    float passMaxValues[3];     // Stores max value from each pass
+    int passIndex = 0;          // Which pass we are on
+
 public:
     CurrentSensor()
     {
-        resetReadings(); // Initialize readings to zero
+        resetReadings();      // Initialize readings to zero
+        resetPassMaxValues(); // Initialize pass max values to zero
     }
 
     void resetReadings()
@@ -39,6 +44,15 @@ public:
         for (int i = 0; i < numReadings; i++)
         {
             readings[i] = 0.0;
+        }
+    }
+
+    void resetPassMaxValues()
+    {
+        // Reset the pass max values array to zeros
+        for (int i = 0; i < numMaxPasses; i++)
+        {
+            passMaxValues[i] = 0.0;
         }
     }
 
@@ -67,17 +81,26 @@ public:
 
         readIndex = (readIndex + 1) % numReadings; // Move to the next index
 
+        // If we filled one pass of 20 readings
         if (readIndex == 0)
         {
-            current = filterCurrent(); // Update current if we have cycled through all readings
+            float maxVal = getMaxCurrentReading(); // Max from current pass
 
-            resetReadings(); // Reset readings if we have cycled through all
+            passMaxValues[passIndex] = maxVal;
 
-            // LOGL("Current: " + String(current) + " A");
+            passIndex = (passIndex + 1) % numMaxPasses; // Move to the next pass
+
+            // After 3 passes, update current with the min of 3 max values
+            if (passIndex == 0)
+            {
+                filterFinalCurrent(); // Filter the final current value
+
+                // LOGL("Current: " + String(current) + " A");
+            }
         }
     }
 
-    float filterCurrent()
+    float getMaxCurrentReading()
     {
         float maxReading = readings[0]; // Initialize maxReading with the first element
 
@@ -90,7 +113,29 @@ public:
             }
         }
 
+        resetReadings(); // Reset readings for the next pass
+
         return maxReading; // Return the maximum value found
+    }
+
+    void filterFinalCurrent()
+    {
+        // Start with the first pass's max value
+        float finalFiltered = passMaxValues[0];
+
+        // Compare it with the next two passes
+        for (int i = 1; i < numMaxPasses; i++)
+        {
+            if (passMaxValues[i] < finalFiltered)
+            {
+                finalFiltered = passMaxValues[i];
+            }
+        }
+
+        // Update the current value with the final filtered value
+        current = finalFiltered;
+
+        resetPassMaxValues(); // Reset pass max values for the next cycle
     }
 
     float getCurrent()
