@@ -45,7 +45,7 @@ private:
         return "";
     }
 
-    String getFileName(const String &date, LogType logType)
+    String getFilePath(const String &date, LogType logType)
     {
         return getDirForType(logType) + "/" + date + String(logType == LogType::ENTRY ? ".csv" : ".log");
     }
@@ -53,9 +53,19 @@ private:
     // Helper function to check if the file should be deleted (older than 30 days)
     bool shouldDeleteFile(String path, LogType logType)
     {
-        String _path = getFileName(TimeManager::getDateDaysAgoString(30), logType);
+        String _path = getFilePath(TimeManager::getDateDaysAgoString(30), logType);
 
-        return path.equals(_path);
+        if (path.equals(_path))
+        {
+            return true;
+        }
+
+        int start = path.lastIndexOf("/") + 1;
+        int end = path.lastIndexOf(".");
+
+        String date = path.substring(start, end);
+
+        return !TimeManager::isValidDate(date);
     }
 
     LogType getLogTypeFromString(int type)
@@ -245,11 +255,17 @@ public:
             return;
         }
 
+        if (!TimeManager::isInitialized())
+        {
+            TelnetLogger::log("SD: Time not initialized (logResetReason).");
+            return;
+        }
+
         String currentDate = TimeManager::getDateString();
-        String filename = getFileName(currentDate, LogType::CRASH_LOG);
+        String path = getFilePath(currentDate, LogType::CRASH_LOG);
 
         // Open the file for appending
-        File file = SD.open(filename, FILE_APPEND);
+        File file = SD.open(path, FILE_APPEND);
         yield();
 
         if (file)
@@ -271,7 +287,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(crashLogDir)));
+            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(crashLogDir)));
         }
     }
 
@@ -290,11 +306,17 @@ public:
             return;
         }
 
+        if (!TimeManager::isInitialized())
+        {
+            TelnetLogger::log("SD: Time not initialized (saveLevelEntry).");
+            return;
+        }
+
         String currentDate = TimeManager::getDateString();
-        String filename = getFileName(currentDate, LogType::ENTRY);
+        String path = getFilePath(currentDate, LogType::ENTRY);
 
         // Open the file for appending
-        File file = SD.open(filename, FILE_APPEND);
+        File file = SD.open(path, FILE_APPEND);
         yield();
 
         if (file)
@@ -312,7 +334,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(entriesDir)));
+            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(entriesDir)));
         }
     }
 
@@ -331,10 +353,10 @@ public:
         }
 
         String currentDate = TimeManager::getDateString();
-        String filename = getFileName(currentDate, LogType::LOG);
+        String path = getFilePath(currentDate, LogType::LOG);
 
         // Open the file for appending
-        File file = SD.open(filename, FILE_APPEND);
+        File file = SD.open(path, FILE_APPEND);
         yield();
 
         if (file)
@@ -354,7 +376,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, filename: " + filename + ", Base exists: " + String(SD.exists(logDir)));
+            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(logDir)));
         }
     }
 
@@ -401,11 +423,11 @@ public:
             date = _file;
         }
 
-        String filename = getFileName(date, logType);
+        String path = getFilePath(date, logType);
 
-        if (!SD.exists(filename))
+        if (!SD.exists(path))
         {
-            request->send(404, "text/plain", "File not found: " + filename);
+            request->send(404, "text/plain", "File not found: " + path);
             return;
         }
 
@@ -413,14 +435,14 @@ public:
 
         AsyncWebServerResponse *response = request->beginResponse(
             SD,
-            filename,
+            path,
             logType == LogType::ENTRY ? "text/csv" : "text/plain");
 
         yield();
 
-        String _filename = getFileName(TimeManager::getDateString(), logType);
+        String _path = getFilePath(TimeManager::getDateString(), logType);
 
-        if (_filename.equals(filename))
+        if (_path.equals(path))
         {
             // today’s file → always re‑validate
             response->addHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
@@ -533,6 +555,7 @@ public:
 
         if (TimeManager::getDateString().equals(_lastDeleteDate))
         {
+            // TelnetLogger::log("SD: Already deleted files today.");
             return;
         }
 
@@ -558,7 +581,7 @@ public:
             }
             else
             {
-                TelnetLogger::log("SD: Opened directory for deletion");
+                TelnetLogger::log("SD: Opened directory for deletion for type: " + String((int)logType));
             }
         }
 
@@ -577,9 +600,15 @@ public:
                 _dir = File();
                 _currentFile = File();
 
+                TelnetLogger::log("SD: Finished processing files in directory for type: " + String((int)logType));
+
                 moveIndexForDeletion();
 
                 return;
+            }
+            else
+            {
+                TelnetLogger::log("SD: Opened file for deletion: " + String(_currentFile.path()));
             }
         }
 
@@ -599,13 +628,15 @@ public:
                 yield(); // Yield to allow other tasks to run
             }
         }
+        else
+        {
+            TelnetLogger::log("SD: File is not old enough to delete: " + filePath);
+        }
 
         _currentFile.close();
         _currentFile = File(); // Move to the next file on the next loop
 
         yield(); // Yield to allow other tasks to run
-
-        moveIndexForDeletion();
     }
 
     void deleteRoot(LogType logType)

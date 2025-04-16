@@ -34,6 +34,19 @@ private:
         return String(buffer);
     }
 
+    static String getTimeString(struct tm *timeInfo)
+    {
+        if (timeInfo == nullptr)
+        {
+            return String(millis());
+        }
+
+        char buffer[11];
+        strftime(buffer, sizeof(buffer), "%H:%M:%S", timeInfo);
+
+        return String(buffer);
+    }
+
 public:
     static void setup()
     {
@@ -123,6 +136,17 @@ public:
         }
 
         return getDateString(&timeInfo);
+    }
+
+    static String getTimeString()
+    {
+        if (!initialized)
+        {
+            Serial.println("Time not initialized.");
+            return String(millis());
+        }
+
+        return getTimeString(&timeInfo);
     }
 
     static struct tm getTimeInfoDaysAgo(int daysAgo)

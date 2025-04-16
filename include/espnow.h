@@ -112,7 +112,10 @@ public:
 
             WaterLevel::lastUpdatedMillis = millis();
 
-            LOGL("Distance received: " + String(WaterLevel::deviceToWaterDistance));
+            if (!WifiConnect::isWifiConnecting())
+            {
+                LOGL("Distance received: " + String(WaterLevel::deviceToWaterDistance));
+            }
         }
         catch (const std::exception &e)
         {

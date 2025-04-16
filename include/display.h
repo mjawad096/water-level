@@ -95,14 +95,7 @@ public:
 
         if (millis() - lastDisplayIpTime > 5000)
         {
-            if (displayIp == 4)
-            {
-                displayIp = 1;
-            }
-            else
-            {
-                displayIp++;
-            }
+            displayIp = (displayIp % 5) + 1;
 
             lastDisplayIpTime = millis();
         }
@@ -130,6 +123,10 @@ public:
             mac = WiFi.softAPmacAddress();
             mac.replace(":", "");
             ipMessage = "APMAC: " + mac;
+            break;
+
+        case 5:
+            ipMessage = "Time: " + TimeManager::getTimeString();
             break;
         }
 

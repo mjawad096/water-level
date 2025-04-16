@@ -19,6 +19,8 @@ private:
     unsigned long previousMillis = 0;
     const unsigned long interval = 300000;
 
+    static bool wifiConnecting;
+
 public:
     WifiConnect()
     {
@@ -41,7 +43,8 @@ public:
 
         database->setup();
 
-        LOGL("\n\n --- Database initialized --- ");
+        LOG("\n\n");
+        LOGL(" --- Database initialized --- ");
 
         TelnetLogger::setup();
         OtaManager::setup();
@@ -56,7 +59,7 @@ public:
         IPAddress IP = WiFi.softAPIP();
         String apSSID = getWifiAPName();
 
-        LOGF("AP started -> SSID: %s, IP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
+        LOGF("AP started -> SSID: %s, IP Address: %s", apSSID.c_str(), IP.toString().c_str());
 
         display->setApSSID(apSSID);
         display->displayText("AP: " + apSSID, false);
@@ -84,6 +87,8 @@ public:
 
         if (WiFi.status() == WL_CONNECTED)
         {
+            wifiConnecting = false;
+
             previousMillis = currentMillis;
 
             return;
@@ -104,8 +109,12 @@ public:
     {
         if (WiFi.status() == WL_CONNECTED)
         {
+            wifiConnecting = false;
+
             return;
         }
+
+        wifiConnecting = true;
 
         LOGL("Connecting to WiFi: " + settings->wifiSSID);
 
@@ -129,13 +138,15 @@ public:
         if (WiFi.status() == WL_CONNECTED)
         {
             LOGL("Connected to WiFi.");
+            display->displayText("Connected to WiFi", false);
         }
         else
         {
             LOGL("Failed to connect to WiFi.");
+            display->displayText("Failed to connect to WiFi", false);
         }
 
-        display->displayText("Connected to WiFi", false);
+        wifiConnecting = false;
 
         delay(2000);
 
@@ -163,4 +174,11 @@ public:
             LOGL("Failed to connect to WiFi.");
         }
     }
+
+    static bool isWifiConnecting()
+    {
+        return wifiConnecting;
+    }
 };
+
+bool WifiConnect::wifiConnecting = false;
