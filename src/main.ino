@@ -47,7 +47,7 @@ void setup()
     reset.setup(&settings);
     waterLevel.setup(&settings, &currentSensor);
 
-    mySwitch.setup(&settings, &currentSensor, &buzzer, &database);
+    mySwitch.setup(&settings, &currentSensor, &buzzer);
 
     webServer.setup(&settings, &currentSensor, &mySwitch, &database);
 

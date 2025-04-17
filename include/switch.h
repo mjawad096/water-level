@@ -11,7 +11,6 @@ private:
     Setting *settings;
     CurrentSensor *currentSensor;
     Buzzer *buzzer;
-    Database *database;
 
     int internalPinState = LOW;
 
@@ -36,20 +35,17 @@ private:
 public:
     static RTC_DATA_ATTR int externalPinState;
 
-    void setup(Setting *settings, CurrentSensor *currentSensor, Buzzer *buzzer, Database *database)
+    void setup(Setting *settings, CurrentSensor *currentSensor, Buzzer *buzzer)
     {
         this->settings = settings;
         this->currentSensor = currentSensor;
         this->buzzer = buzzer;
-        this->database = database;
 
         pinMode(externalPin, OUTPUT);
         pinMode(internalPin, INPUT_PULLUP);
 
         internalPinState = digitalRead(internalPin);
 
-        int savedState = database->loadExternalSwitchState();
-        externalPinState = savedState != -1 ? savedState : LOW;
         digitalWrite(externalPin, externalPinState);
     }
 
@@ -69,15 +65,17 @@ public:
             return;
         }
 
-        int newExternalPinState = externalPinState == HIGH ? LOW : HIGH;
+        if (externalPinState == pendingState)
+        {
+            digitalWrite(externalPin, externalPinState == HIGH ? LOW : HIGH); // Switch if already in requested state
 
-        digitalWrite(externalPin, newExternalPinState);
+            delay(100);
+        }
 
-        externalPinState = newExternalPinState;
+        externalPinState = pendingState ? HIGH : LOW;
+        digitalWrite(externalPin, externalPinState);
 
-        database->saveExternalSwitchState(externalPinState);
-
-        LOGL("Switch State changed to " + String(pendingState));
+        LOGL("External Switch State changed to " + String(pendingState));
 
         pendingState = -1;
     }
