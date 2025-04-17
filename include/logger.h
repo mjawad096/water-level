@@ -1,6 +1,5 @@
 #pragma once
 
-#include <telnet_logger.h>
 #include <database.h>
 
 class Logger
@@ -18,10 +17,13 @@ public:
 
     static void log(const String &message, bool newLine = true, bool noDatabase = false)
     {
-        TelnetLogger::log(message, newLine);
+        if (database == nullptr)
+        {
+            TelnetLogger::log("Database not initialized. Please call Logger::setup() first.");
+            return;
+        }
 
-        if (!noDatabase && database != nullptr)
-            database->saveLogEntry(message, newLine);
+        database->log(message, newLine, noDatabase);
     }
 
     static void logf(const char *format, ...)
@@ -29,11 +31,12 @@ public:
         va_list args;
         va_start(args, format);
 
-        const String message = TelnetLogger::logf(format, args);
+        char buffer[128];
+        vsnprintf(buffer, sizeof(buffer), format, args);
 
         va_end(args);
 
-        database->saveLogEntry(message);
+        log(buffer, true);
     }
 
     static void logfnd(const char *format, ...)
@@ -41,16 +44,22 @@ public:
         va_list args;
         va_start(args, format);
 
-        TelnetLogger::logf(format, args);
+        char buffer[128];
+        vsnprintf(buffer, sizeof(buffer), format, args);
 
         va_end(args);
+
+        log(buffer, true, true);
     }
 };
 
 Database *Logger::database = nullptr;
 
-#define LOG(x) Logger::log(x, false)            // Log without new line
-#define LOGL(x) Logger::log(x, true)            // Log with new line
-#define LOGND(x) Logger::log(x, true, false)    // No database log
+#define LOG(x) Logger::log(x, false)         // Log without new line
+#define LOGND(x) Logger::log(x, false, true) // Log without new line && No database log
+
+#define LOGL(x) Logger::log(x, true)         // Log with new line
+#define LOGLND(x) Logger::log(x, true, true) // Log with new line && No database log
+
 #define LOGF(...) Logger::logf(__VA_ARGS__)     // Log with format
 #define LOGFND(...) Logger::logfnd(__VA_ARGS__) // Log with format and no database

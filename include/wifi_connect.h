@@ -116,7 +116,7 @@ public:
 
         wifiConnecting = true;
 
-        LOGL("Connecting to WiFi: " + settings->wifiSSID);
+        LOGF("Connecting to WiFi: %s", settings->wifiSSID);
 
         display->displayText("Connecting to WiFi...", false);
 
@@ -132,8 +132,6 @@ public:
             LOG(".");
             attempt++;
         }
-
-        LOG("\n");
 
         if (WiFi.status() == WL_CONNECTED)
         {

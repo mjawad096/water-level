@@ -144,13 +144,13 @@ private:
         File dir = SD.open(dirname);
         if (!dir)
         {
-            TelnetLogger::log("❌ Directory does not exist: " + String(dirname));
+            log("❌ Directory does not exist: " + String(dirname));
             return;
         }
 
         if (!dir.isDirectory())
         {
-            TelnetLogger::log("❌ Not a directory: " + String(dirname));
+            log("❌ Not a directory: " + String(dirname));
             dir.close();
             return;
         }
@@ -170,11 +170,11 @@ private:
                 entry.close();
                 if (SD.remove(entryPath))
                 {
-                    TelnetLogger::log("🗑️ Deleted file: " + entryPath);
+                    log("🗑️ Deleted file: " + entryPath);
                 }
                 else
                 {
-                    TelnetLogger::log("❌ Failed to delete file: " + entryPath);
+                    log("❌ Failed to delete file: " + entryPath);
                 }
             }
 
@@ -185,11 +185,11 @@ private:
 
         if (SD.rmdir(dirname))
         {
-            TelnetLogger::log("✅ Deleted directory: " + String(dirname));
+            log("✅ Deleted directory: " + String(dirname));
         }
         else
         {
-            TelnetLogger::log("❌ Failed to delete directory (still not empty?): " + String(dirname));
+            log("❌ Failed to delete directory (still not empty?): " + String(dirname));
         }
     }
 
@@ -252,13 +252,13 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: Card not initialized (logResetReason).");
+            log("SD: Card not initialized (logResetReason).");
             return;
         }
 
         if (!TimeManager::isInitialized())
         {
-            TelnetLogger::log("SD: Time not initialized (logResetReason).");
+            log("SD: Time not initialized (logResetReason).");
             return;
         }
 
@@ -293,7 +293,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(crashLogDir)));
+            log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(crashLogDir)));
         }
     }
 
@@ -302,19 +302,19 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: Card not initialized (saveLevelEntry).");
+            log("SD: Card not initialized (saveLevelEntry).");
             return;
         }
 
         if (levelData == nullptr)
         {
-            TelnetLogger::log("SD: Null water level data received.");
+            log("SD: Null water level data received.");
             return;
         }
 
         if (!TimeManager::isInitialized())
         {
-            TelnetLogger::log("SD: Time not initialized (saveLevelEntry).");
+            log("SD: Time not initialized (saveLevelEntry).");
             return;
         }
 
@@ -340,7 +340,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(entriesDir)));
+            log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(entriesDir)));
         }
     }
 
@@ -348,13 +348,13 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: Card not initialized (saveLogEntry).");
+            lognd("SD: Card not initialized (saveLogEntry).");
             return;
         }
 
         if (!TimeManager::isInitialized())
         {
-            TelnetLogger::log("SD: Time not initialized (saveLogEntry).");
+            lognd("SD: Time not initialized (saveLogEntry).");
             return;
         }
 
@@ -369,7 +369,7 @@ public:
         {
             if (newLine)
             {
-                file.printf("[%s] %s\n", TimeManager::getDateTimeString().c_str(), message.c_str());
+                file.printf("\n[%s] %s", TimeManager::getDateTimeString().c_str(), message.c_str());
             }
             else
             {
@@ -382,7 +382,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(logDir)));
+            lognd("SD: Error opening file for writing, path: " + path + ", Base exists: " + String(SD.exists(logDir)));
         }
     }
 
@@ -390,6 +390,7 @@ public:
     {
         if (!_isSetup)
         {
+            log("SD: Card not initialized (streamFile).");
             request->send(500, "text/plain", "SD card not initialized");
             return;
         }
@@ -470,6 +471,7 @@ public:
     {
         if (!_isSetup)
         {
+            log("SD: Card not initialized (listFiles).");
             request->send(500, "text/plain", "SD card not initialized");
             return;
         }
@@ -528,6 +530,7 @@ public:
     {
         if (!_isSetup)
         {
+            log("SD: Card not initialized (getSDInfo).");
             request->send(500, "text/plain", "SD card not initialized");
             return;
         }
@@ -555,13 +558,13 @@ public:
     {
         if (!_isSetup)
         {
-            TelnetLogger::log("SD: Card not initialized (deleteOldFiles).");
+            log("SD: Card not initialized (deleteOldFiles).");
             return;
         }
 
         if (TimeManager::getDateString().equals(_lastDeleteDate))
         {
-            // TelnetLogger::log("SD: Already deleted files today.");
+            // log("SD: Already deleted files today.");
             return;
         }
 
@@ -576,7 +579,7 @@ public:
 
             if (!_dir)
             {
-                TelnetLogger::log("SD: Failed to open directory for deletion for type: " + String((int)logType));
+                log("SD: Failed to open directory for deletion for type: " + String((int)logType));
 
                 _dir = File();
                 _currentFile = File();
@@ -587,7 +590,7 @@ public:
             }
             else
             {
-                TelnetLogger::log("SD: Opened directory for deletion for type: " + String((int)logType));
+                log("SD: Opened directory for deletion for type: " + String((int)logType));
             }
         }
 
@@ -606,7 +609,7 @@ public:
                 _dir = File();
                 _currentFile = File();
 
-                TelnetLogger::log("SD: Finished processing files in directory for type: " + String((int)logType));
+                log("SD: Finished processing files in directory for type: " + String((int)logType));
 
                 moveIndexForDeletion();
 
@@ -614,7 +617,7 @@ public:
             }
             else
             {
-                TelnetLogger::log("SD: Opened file for deletion: " + String(_currentFile.path()));
+                log("SD: Opened file for deletion: " + String(_currentFile.path()));
             }
         }
 
@@ -623,11 +626,11 @@ public:
 
         if (shouldDeleteFile(filePath, logType))
         {
-            TelnetLogger::log("SD: Deleting old file: " + filePath);
+            log("SD: Deleting old file: " + filePath);
 
             if (!SD.remove(filePath))
             {
-                TelnetLogger::log("SD: Failed to delete file: " + filePath);
+                log("SD: Failed to delete file: " + filePath);
             }
             else
             {
@@ -636,7 +639,7 @@ public:
         }
         else
         {
-            TelnetLogger::log("SD: File is not old enough to delete: " + filePath);
+            log("SD: File is not old enough to delete: " + filePath);
         }
 
         _currentFile.close();
@@ -665,11 +668,11 @@ public:
 
             file.close();
 
-            TelnetLogger::log("SD: External switch state saved: " + String(state));
+            log("SD: External switch state saved: " + String(state));
         }
         else
         {
-            TelnetLogger::log("SD: Failed to open external switch state file for writing");
+            log("SD: Failed to open external switch state file for writing");
         }
     }
 
@@ -690,7 +693,7 @@ public:
 
             file.close();
 
-            TelnetLogger::log("SD: External switch state loaded: " + String(state));
+            log("SD: External switch state loaded: " + String(state));
 
             return state;
         }
@@ -701,8 +704,22 @@ public:
                 file.close();
             }
 
-            TelnetLogger::log("SD: Failed to open external switch state file for reading or file size is incorrect");
+            log("SD: Failed to open external switch state file for reading or file size is incorrect");
         }
+
         return -1; // or a default value
+    }
+
+    void log(const String &message, bool newLine = true, bool noDatabase = false)
+    {
+        TelnetLogger::log(message, newLine);
+
+        if (!noDatabase)
+            saveLogEntry(message, newLine);
+    }
+
+    void lognd(const String &message, bool newLine = true)
+    {
+        log(message, newLine, true);
     }
 };
