@@ -22,6 +22,7 @@ private:
     const char *logDir = "/waterlevel/logs";
     const char *entriesDir = "/waterlevel/entries";
     const char *crashLogDir = "/waterlevel/crash_logs";
+    const char *externalSwitchStateFile = "/waterlevel/external_switch_state.bin";
 
     bool _isSetup = false;
 
@@ -274,9 +275,14 @@ public:
             esp_reset_reason_t reason = esp_reset_reason();
 
             logMessage += "===== Boot =====\n";
-            logMessage += "Date time: " + TimeManager::getDateTimeString() + "\n";
-            logMessage += "Uptime (ms): " + String(millis()) + "\n";
-            logMessage += "Reset Reason: " + resetReasonToString(reason) + "\n";
+            logMessage += "Date time       : " + TimeManager::getDateTimeString() + "\n";
+            logMessage += "CPU Frequency   : " + String(ESP.getCpuFreqMHz()) + " MHz\n";
+            logMessage += "Sketch Size     : " + String(ESP.getSketchSize()) + " bytes\n";
+            logMessage += "Flash Chip Size : " + String(ESP.getFlashChipSize()) + " bytes\n";
+            logMessage += "MAC Address     : " + WiFi.macAddress() + "\n";
+            logMessage += "Free Heap       : " + String(ESP.getFreeHeap()) + "\n";
+            logMessage += "Uptime (ms)     : " + String(millis()) + "\n";
+            logMessage += "Reset Reason    : " + resetReasonToString(reason) + "\n";
             logMessage += "================\n";
 
             file.println(logMessage);
@@ -642,5 +648,61 @@ public:
     void deleteRoot(LogType logType)
     {
         deleteDirectory(getDirForType(logType).c_str());
+    }
+
+    void saveExternalSwitchState(int state)
+    {
+        if (!_isSetup)
+            return;
+
+        File file = SD.open(externalSwitchStateFile, FILE_WRITE);
+        yield();
+
+        if (file)
+        {
+            file.write((uint8_t *)&state, sizeof(state));
+            yield();
+
+            file.close();
+
+            TelnetLogger::log("SD: External switch state saved: " + String(state));
+        }
+        else
+        {
+            TelnetLogger::log("SD: Failed to open external switch state file for writing");
+        }
+    }
+
+    int loadExternalSwitchState()
+    {
+        if (!_isSetup)
+            return -1;
+
+        File file = SD.open(externalSwitchStateFile, FILE_READ);
+        yield();
+
+        if (file && file.size() == sizeof(int))
+        {
+            int state = 0;
+
+            file.read((uint8_t *)&state, sizeof(state));
+            yield();
+
+            file.close();
+
+            TelnetLogger::log("SD: External switch state loaded: " + String(state));
+
+            return state;
+        }
+        else
+        {
+            if (file)
+            {
+                file.close();
+            }
+
+            TelnetLogger::log("SD: Failed to open external switch state file for reading or file size is incorrect");
+        }
+        return -1; // or a default value
     }
 };
