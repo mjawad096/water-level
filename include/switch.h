@@ -51,7 +51,7 @@ public:
 
     void handlePendingState()
     {
-        LOGF("Handling pending State: %d, Current state: %d, Current: %.2f ", pendingState, currentSensor->isCurrentFlowing(), currentSensor->getCurrent());
+        LOGDF("Handling pending State: %d, Current state: %d, Current: %.2f ", pendingState, currentSensor->isCurrentFlowing(), currentSensor->getCurrent());
 
         if (pendingState == -1 || pendingState == currentSensor->isCurrentFlowing())
         {
@@ -75,7 +75,7 @@ public:
         externalPinState = pendingState ? HIGH : LOW;
         digitalWrite(externalPin, externalPinState);
 
-        LOGL("External Switch State changed to " + String(pendingState));
+        LOGDF("External Switch State changed to %s", String(pendingState));
 
         pendingState = -1;
     }
@@ -99,7 +99,7 @@ public:
 
         internalPinState = newInternalPinState;
 
-        LOGL("Internal switch state changed: " + String(internalPinState));
+        LOGDF("Internal switch state changed: %s", String(internalPinState));
 
         pendingState = currentSensor->isCurrentFlowing() ? false : true;
     }
@@ -113,7 +113,7 @@ public:
 
         pendingState = manualSwitchRequested;
 
-        LOGL("Manual switch requested: " + String(manualSwitchRequested));
+        LOGDF("Manual switch requested: %s", String(manualSwitchRequested));
 
         manualSwitchRequested = -1;
     }
@@ -156,7 +156,7 @@ public:
         pendingState = true;
         lastSentOnTime = millis();
 
-        LOGL("Tank empty, Sent Switch state to ON");
+        LOGD("Tank empty, Sent Switch state to ON");
     }
 
     void checkForCloseState(int level)
@@ -194,7 +194,7 @@ public:
         pendingState = false;
         lastSentOffTime = millis();
 
-        LOGL("Tank full, Sent Switch state to OFF");
+        LOGD("Tank full, Sent Switch state to OFF");
     }
 
     void manualStart()

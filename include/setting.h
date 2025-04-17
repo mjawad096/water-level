@@ -23,6 +23,8 @@ public:
     long emptyThreshold = 5;
     bool autoOffOnFull = false;
     bool autoOnOnEmpty = false;
+    bool alarmEnabled = true;
+    bool debugLogging = true;
 
     String lastError = "";
 
@@ -44,6 +46,8 @@ public:
         emptyThreshold = preferences.getLong("emptyThreshold", 5);
         autoOffOnFull = preferences.getBool("autoOffOnFull", false);
         autoOnOnEmpty = preferences.getBool("autoOnOnEmpty", false);
+        alarmEnabled = preferences.getBool("alarmEnabled", true);
+        debugLogging = preferences.getBool("debugLogging", true);
 
         preferences.end();
     }
@@ -70,6 +74,8 @@ public:
         emptyThreshold = obj["emptyThreshold"].as<long>();
         autoOffOnFull = obj["autoOffOnFull"].as<bool>();
         autoOnOnEmpty = obj["autoOnOnEmpty"].as<bool>();
+        alarmEnabled = obj["alarmEnabled"].as<bool>();
+        debugLogging = obj["debugLogging"].as<bool>();
 
         if (durationForPing == 0)
         {
@@ -93,6 +99,8 @@ public:
         preferences.putLong("emptyThreshold", emptyThreshold);
         preferences.putBool("autoOffOnFull", autoOffOnFull);
         preferences.putBool("autoOnOnEmpty", autoOnOnEmpty);
+        preferences.putBool("alarmEnabled", alarmEnabled);
+        preferences.putBool("debugLogging", debugLogging);
 
         preferences.end();
     }
@@ -111,6 +119,8 @@ public:
         emptyThreshold = 5;
         autoOffOnFull = false;
         autoOnOnEmpty = false;
+        alarmEnabled = true;
+        debugLogging = true;
 
         save();
 
@@ -133,6 +143,8 @@ public:
         doc["emptyThreshold"] = emptyThreshold;
         doc["autoOffOnFull"] = autoOffOnFull;
         doc["autoOnOnEmpty"] = autoOnOnEmpty;
+        doc["alarmEnabled"] = alarmEnabled;
+        doc["debugLogging"] = debugLogging;
 
         return doc;
     }

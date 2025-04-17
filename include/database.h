@@ -26,6 +26,8 @@ private:
 
     bool _isSetup = false;
 
+    bool *_debugLogging = nullptr;
+
     // Parameters for deletion
     String _lastDeleteDate = "";
     File _dir;
@@ -199,7 +201,7 @@ public:
     ~Database() {}
 
     // Setup function to initialize SD card
-    void setup()
+    void setup(bool *debugLogging)
     {
         if (!SD.begin())
         {
@@ -208,6 +210,7 @@ public:
         }
 
         _isSetup = true;
+        _debugLogging = debugLogging;
 
         TelnetLogger::log(" --- SD: Card initialized --- \n\r Size: " + String(SD.cardSize()) + " bytes, Used: " + String(SD.usedBytes()) + " bytes");
 
@@ -710,6 +713,7 @@ public:
         return -1; // or a default value
     }
 
+    // LOG
     void log(const String &message, bool newLine = true, bool noDatabase = false)
     {
         TelnetLogger::log(message, newLine);
@@ -718,8 +722,16 @@ public:
             saveLogEntry(message, newLine);
     }
 
+    // LOG with no database
     void lognd(const String &message, bool newLine = true)
     {
         log(message, newLine, true);
+    }
+
+    // Debug log
+    void logd(const String &message)
+    {
+        if (_debugLogging == nullptr || *_debugLogging == true)
+            log("DEBUG: " + message);
     }
 };

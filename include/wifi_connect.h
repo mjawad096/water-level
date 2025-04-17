@@ -41,7 +41,7 @@ public:
 
         TimeManager::setup();
 
-        database->setup();
+        database->setup(&this->settings->debugLogging);
 
         LOG("\n\n");
         LOGL(" --- Database initialized --- ");

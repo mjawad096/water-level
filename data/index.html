@@ -313,6 +313,38 @@
                 </div>
               </div>
 
+              <!-- Alarm Enabled -->
+              <div class="mb-4">
+                <div>
+                  <label class="flex items-center">
+                    <input
+                      class="form-checkbox"
+                      type="checkbox"
+                      x-model="settings_form.alarm_enabled"
+                    />
+                    <span class="ml-2 text-gray-700 dark:text-gray-300">
+                      &nbsp;Alarm Enabled
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Debug Logging -->
+              <div class="mb-4">
+                <div>
+                  <label class="flex items-center">
+                    <input
+                      class="form-checkbox"
+                      type="checkbox"
+                      x-model="settings_form.debug_logging"
+                    />
+                    <span class="ml-2 text-gray-700 dark:text-gray-300">
+                      &nbsp;Debug Logging
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <div class="flex items-center justify-between">
                 <button
                   type="button"
@@ -406,8 +438,10 @@
             delay_stop_switch: "",
             full_threshold: "",
             empty_threshold: "",
-            auto_off_on_full: "",
-            auto_on_on_empty: "",
+            auto_off_on_full: false,
+            auto_on_on_empty: false,
+            alarm_enabled: false,
+            debug_logging: false,
           },
 
           connected: false,
@@ -581,6 +615,9 @@
               this.settings_form.empty_threshold = data.emptyThreshold;
               this.settings_form.auto_off_on_full = data.autoOffOnFull;
               this.settings_form.auto_on_on_empty = data.autoOnOnEmpty;
+
+              this.settings_form.alarm_enabled = data.alarmEnabled;
+              this.settings_form.debug_logging = data.debugLogging;
             }
           },
 
@@ -621,6 +658,8 @@
               emptyThreshold: this.settings_form.empty_threshold,
               autoOffOnFull: this.settings_form.auto_off_on_full,
               autoOnOnEmpty: this.settings_form.auto_on_on_empty,
+              alarmEnabled: this.settings_form.alarm_enabled,
+              debugLogging: this.settings_form.debug_logging,
             });
 
             this.loading = false;

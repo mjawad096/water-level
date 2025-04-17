@@ -78,11 +78,11 @@ public:
 
         if (result == ESP_OK)
         {
-            LOGL("Sent with success");
+            LOGD("Sent with success");
         }
         else
         {
-            LOGL("Error sending the data");
+            LOGD("Error sending the data");
         }
     }
 
@@ -100,7 +100,7 @@ public:
         snprintf(macStr, sizeof(macStr), "%02x:%02x:%02x:%02x:%02x:%02x",
                  mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 
-        LOGL("Packet to: " + String(macStr) + " -> " + String(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail"));
+        LOGD("Packet to: " + String(macStr) + " -> " + String(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail"));
     }
 
     // callback when data is received
@@ -114,7 +114,7 @@ public:
 
             if (!WifiConnect::isWifiConnecting())
             {
-                LOGL("Distance received: " + String(WaterLevel::deviceToWaterDistance));
+                LOGD("Distance received: " + String(WaterLevel::deviceToWaterDistance));
             }
         }
         catch (const std::exception &e)

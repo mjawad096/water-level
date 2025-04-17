@@ -100,11 +100,11 @@ void loop()
         led.blinkFor(1500);
     }
 
-    if (isLowLevel())
+    if (isLowLevel() && settings.alarmEnabled)
     {
         buzzer.start(2, 3600000, 400); // 1 hour
     }
-    else if (isHighLevel())
+    else if (isHighLevel() && settings.alarmEnabled)
     {
         buzzer.start(3, 3600000, 200); // 1 hour
     }

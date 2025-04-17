@@ -95,7 +95,7 @@ public:
             {
                 filterFinalCurrent(); // Filter the final current value
 
-                // LOGL("Current: " + String(current) + " A");
+                // LOGD("Current: " + String(current) + " A");
             }
         }
     }

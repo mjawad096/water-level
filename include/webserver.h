@@ -127,7 +127,7 @@ public:
         {
           if (client->lastId())
           {
-            LOGF("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+            LOGDF("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
           }
           // send event with message "hello!", id current millis
           // and set reconnect delay to 1 second
