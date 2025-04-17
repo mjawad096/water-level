@@ -274,7 +274,7 @@ public:
             String logMessage = "";
             esp_reset_reason_t reason = esp_reset_reason();
 
-            logMessage += "===== Boot =====\n";
+            logMessage += "================ Boot ================\n";
             logMessage += "Date time       : " + TimeManager::getDateTimeString() + "\n";
             logMessage += "CPU Frequency   : " + String(ESP.getCpuFreqMHz()) + " MHz\n";
             logMessage += "Sketch Size     : " + String(ESP.getSketchSize()) + " bytes\n";
@@ -283,7 +283,7 @@ public:
             logMessage += "Free Heap       : " + String(ESP.getFreeHeap()) + "\n";
             logMessage += "Uptime (ms)     : " + String(millis()) + "\n";
             logMessage += "Reset Reason    : " + resetReasonToString(reason) + "\n";
-            logMessage += "================\n";
+            logMessage += "======================================\n";
 
             file.println(logMessage);
 
