@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Water Level Indicator | History</title>
+
+    <!-- Scripts -->
+    <link rel="stylesheet" href="/index.css" type="text/css" />
+    <link rel="stylesheet" href="/styles.css" type="text/css" />
+
+    <!-- Styles -->
+</head>
+<body>
+    <!-- <div x-data="history()" x-init="init()"> -->
+    <div class="font-sans text-gray-900 dark:text-gray-100 antialiased main">
+        <div class="flex w-full min-h-screen justify-center items-center bg-white dark:bg-slate-900">
+            <div x-data="mainComponent"
+                class="flex flex-row gap-10 shadow-md rounded-lg p-8 w-full bg-slate-200 dark:bg-slate-800 m-5 text-gray-700 dark:text-gray-200 main-card"
+                x-cloak>
+                <div class="w-full">
+                    <h2 class="text-2xl font-semibold mb-6 text-center">Water Level & Distance Over Time</h2>
+
+                    <div class="mb-4">
+                        <div class="">
+                            <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                                Date
+                                <select
+                                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                                    type="text" x-model="selectedDate" autofocus="autofocus">
+                                    <template x-for="(date,key) in last30Days" :key="key">
+                                        <option :value="date" x-text="date"></option>
+                                    </template>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div x-show="!loading">
+                        <label for="time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Time Range:</label>
+                        <div class="flex gap-4 mb-4">
+                            <!-- <label for="from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">From</label> -->
+                            <input type="time" id="from" x-model="time.from" name="from"
+                                class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                             />
+                             
+                            <!-- <label for="from" class="block text-sm font-medium text-gray-700 dark:text-gray-300">To</label> -->
+                            <input type="time" id="to" x-model="time.to" name="to"
+                                class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                             />
+                        </div>
+
+                        <canvas class="w-full" x-ref="canvas" id="graph"></canvas>
+                    </div>
+                    <div x-show="loading" class="text-center w-full" style="min-height: 300px;">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         document.addEventListener("alpine:init", () => {
+            Alpine.data("mainComponent", () => ({
+                endpoint: "http://esp32-waterlevel.local",
+                chart: null,
+                chartData: {
+                    labels: [],
+                    levels: [],
+                    pumpStatus: [],
+                },
+                logs: [],
+                selectedDate: '',
+                time: {
+                    from: '00:00',
+                    to: '23:59'
+                },
+                last30Days: [],
+                loading: true,
+
+                isDark: window.matchMedia('(prefers-color-scheme: dark)').matches,
+
+                init() {
+                    if (window.location.hostname !== "localhost") {
+                        this.endpoint = window.location.origin;
+                    }
+
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+                        this.isDark = e.matches;
+                    });
+
+                    this.generateLast30Days();
+                    this.selectedDate = this.last30Days[0];
+
+                    // Delay chart rendering until DOM is ready
+                    requestAnimationFrame(() => {
+                        this.fetchData();
+                    });
+
+                    this.$watch('selectedDate', (newDate) => {
+                        this.fetchData();
+                    });
+
+                    this.$watch('logs', (newLogs) => {
+                        this.calculateChartData();
+                    });
+
+                    this.$watch('chartData', (newData) => {
+                        this.renderChart();
+                    });
+
+                    this.$watch('isDark', (newValue) => {
+                        this.renderChart();
+                    });
+
+                    let debouncedCalculate = this.debounce(() => {
+                        this.calculateChartData();
+                    }, 300);
+
+                    this.$watch('time', (newValue) => {
+                       debouncedCalculate();
+                    });
+                },
+
+                debounce(func, wait) {
+                    let timeout;
+                    return function (...args) {
+                        clearTimeout(timeout);
+                        timeout = setTimeout(() => func.apply(this, args), wait);
+                    };
+                },
+
+                generateLast30Days() {
+                    const today = new Date();
+                    for (let i = 0; i < 30; i++) {
+                        const d = new Date(today);
+                        d.setDate(today.getDate() - i);
+
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        
+                        this.last30Days.push(`${year}-${month}-${day}`);
+                    }
+                },
+
+                fetchData() {
+                    const apiUrl = `${this.endpoint}/logs?date=${this.selectedDate}`;
+
+                    this.loading = true;
+
+                    this.time.from = "00:00";
+                    this.time.to = "23:59";
+
+                    fetch(apiUrl)
+                        .then(res => res.text()) // expects CSV with no headers
+                        .then(csv => csv.trim().split('\n').map(row => row.split(',')))
+                        .then(rows => {
+                            const dataPerMinute = {};
+
+                            // Group data by time (HH:mm)
+                            rows.forEach(row => {
+                                const dateTime = new Date(row[0]);
+                                const level = parseFloat(row[1]);
+                                const pumpStatus = parseInt(row[3]);
+
+                                const hourMinuteKey =
+                                    String(dateTime.getHours()).padStart(2, '0') + ':' +
+                                    String(dateTime.getMinutes()).padStart(2, '0');
+
+                                if (!dataPerMinute[hourMinuteKey]) {
+                                    dataPerMinute[hourMinuteKey] = {
+                                        levels: [],
+                                        pumpStatuses: []
+                                    };
+                                }
+
+                                dataPerMinute[hourMinuteKey].levels.push(level);
+                                dataPerMinute[hourMinuteKey].pumpStatuses.push(pumpStatus);
+                            });
+
+                            return dataPerMinute;
+                        })
+                        .then(dataPerMinute => {
+                            const logs = [];
+
+                            for (const time in dataPerMinute) {
+                                const levels = dataPerMinute[time].levels;
+                                const pumpStatuses = dataPerMinute[time].pumpStatuses;
+
+                                const avgLevel = levels.reduce((a, b) => a + b, 0) / levels.length;
+                                const pumpWasOn = pumpStatuses.some(status => status === 1) ? 100 : 0;
+
+                                logs.push([time, avgLevel, pumpWasOn]);
+                            }
+
+                            return logs;
+                        })
+                        .then(logs => {
+                            this.logs = logs;
+                        })
+                        .catch(err => console.error('Fetch error:', err));
+                },
+
+                calculateChartData() {
+                    this.loading = true;
+                    
+                    this.chartData.labels = [];
+                    this.chartData.levels = [];
+                    this.chartData.pumpStatus = [];
+
+                    for (let log of this.logs) {
+                        const [time, level, pumpStatus] = log;
+                        
+                        let [hour, minute] = time.split(':');
+                        let [fromHour, fromMinute] = this.time.from.split(':');
+                        let [toHour, toMinute] = this.time.to.split(':');
+
+                        hour = parseInt(hour);
+                        minute = parseInt(minute);
+
+                        fromHour = parseInt(fromHour);
+                        fromMinute = parseInt(fromMinute);
+
+                        toHour = parseInt(toHour);
+                        toMinute = parseInt(toMinute);
+
+                        if(hour > toHour || hour < fromHour) {
+                            continue;
+                        }
+
+                        if(hour === fromHour && minute < fromMinute) {
+                            continue;
+                        }
+
+                        if(hour === toHour && minute > toMinute) {
+                            continue;
+                        }
+                        
+                        this.chartData.labels.push(time);
+                        this.chartData.levels.push(parseFloat(level));
+                        this.chartData.pumpStatus.push(pumpStatus);
+                    }
+                },
+
+                renderChart(){
+                    if(this.chart) {
+                        this.chart.dispose();
+                    }
+
+                    this.chart = echarts.init(this.$refs.canvas, this.isDark ? 'dark': null, {
+                        width: 600,
+                        height: 300
+                    });
+                    var option;
+
+                    option = {
+                        xAxis: {
+                            type: 'category',
+                            boundaryGap: false,
+                            data: this.chartData.labels
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [
+                            {
+                                data: this.chartData.levels,
+                                type: 'line',
+                                // smooth: true,
+                                areaStyle: {}
+                            },
+                            {
+                                label: 'Pump Status',
+                                data: this.chartData.pumpStatus,
+                                type: 'line',
+                                borderColor: 'red',
+                                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                                tension: 0.3,
+                            }
+                        ]
+                    };
+
+                    option && this.chart.setOption(option);
+
+                    this.loading = false;
+                }
+            }))
+        })
+    </script>
+
+    <script defer src="/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+</body>
+</html>

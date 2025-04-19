@@ -470,13 +470,17 @@
         },
 
         setTime(time) {
-          const [hours, minutes, seconds] = time.split(':').map(Number);
+          let [hours, minutes, seconds] = time.split(':').map(Number);
 
           let today = new Date();
 
           let year = today.getFullYear();
           let month = String(today.getMonth() + 1).padStart(2, '0');
           let day = String(today.getDate()).padStart(2, '0');
+
+          hours = String(hours).padStart(2, '0');
+          minutes = String(minutes).padStart(2, '0');
+          seconds = String(seconds).padStart(2, '0');
 
           this.datetime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
         },
