@@ -102,7 +102,7 @@ void loop()
 
     if (isLowLevel() && settings.alarmEnabled)
     {
-        buzzer.start(2, 3600000, 400); // 1 hour
+        buzzer.start(2, 60000, 400); // 1 minute
     }
     else if (isHighLevel() && settings.alarmEnabled)
     {

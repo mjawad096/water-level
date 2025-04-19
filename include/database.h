@@ -283,7 +283,7 @@ public:
             logMessage += "Sketch Size     : " + String(ESP.getSketchSize()) + " bytes\n";
             logMessage += "Flash Chip Size : " + String(ESP.getFlashChipSize()) + " bytes\n";
             logMessage += "MAC Address     : " + WiFi.macAddress() + "\n";
-            logMessage += "Free Heap       : " + String(ESP.getFreeHeap()) + "\n";
+            logMessage += "Free Heap       : " + String(ESP.getFreeHeap()) + " bytes\n";
             logMessage += "Uptime (ms)     : " + String(millis()) + "\n";
             logMessage += "Reset Reason    : " + resetReasonToString(reason) + "\n";
             logMessage += "======================================\n";

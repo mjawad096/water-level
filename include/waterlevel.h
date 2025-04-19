@@ -25,7 +25,7 @@ public:
     {
         if (deviceToWaterDistance == -1)
         {
-            return WaterLevelData(-1, deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
+            return getLevelData(-1);
         }
 
         double topEndDistanceFromDevice = settings->topEndFromDevice;
@@ -48,7 +48,19 @@ public:
             level = 100;
         }
 
-        return WaterLevelData(level, WaterLevel::deviceToWaterDistance, currentSensor->isCurrentFlowing(), settings->emptyThreshold, settings->fullThreshold);
+        return getLevelData(level);
+    }
+
+    WaterLevelData getLevelData(double level)
+    {
+        return WaterLevelData(
+            level,
+            WaterLevel::deviceToWaterDistance,
+            currentSensor->isCurrentFlowing(),
+            settings->emptyThreshold,
+            settings->fullThreshold,
+            settings->alarmEnabled,
+            TimeManager::getTimeString().c_str());
     }
 
     static bool isLastUpdatedMoreThan(unsigned long minutes);
