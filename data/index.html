@@ -1,717 +1,657 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Water Level Indicator</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Scripts -->
-    <link rel="stylesheet" href="/index.css" type="text/css" />
-    <link rel="stylesheet" href="/styles.css" type="text/css" />
+  <title>Water Level Indicator</title>
 
-    <!-- Styles -->
-  </head>
+  <!-- Styles -->
+  <link rel="stylesheet" href="/index.css" type="text/css" />
+  <link rel="stylesheet" href="/styles.css" type="text/css" />
 
-  <body>
-    <div class="font-sans text-gray-900 dark:text-gray-100 antialiased main">
-      <div
-        class="flex w-full min-h-screen justify-center items-center bg-white dark:bg-slate-900"
-      >
-        <div
-          x-data="mainComponent"
-          class="flex flex-row gap-10 shadow-md rounded-lg p-8 w-full bg-slate-200 dark:bg-slate-800 m-5 text-gray-700 dark:text-gray-200 main-card"
-          x-cloak
-        >
-          <div class="status" x-show="connected">
-            <h2 class="text-2xl font-semibold mb-6 text-center">Water Level</h2>
-            <div class="status-card">
-              <div class="box">
-                <div class="progress-container">
-                  <div class="progress-circle">
-                    <svg width="150" height="150">
-                      <circle class="circle-bg" cx="75" cy="75" r="60" />
-                      <circle
-                        class="circle-progress"
-                        :stroke-dashoffset="offset"
-                        cx="75"
-                        cy="75"
-                        r="60"
-                      />
-                    </svg>
-                    <div class="progress-text" x-text="waterLevelMessage"></div>
-                  </div>
+</head>
+
+<body>
+  <div class="font-sans text-gray-900 dark:text-gray-100 antialiased main">
+    <div class="flex w-full min-h-screen justify-center items-center bg-white dark:bg-slate-900">
+      <div x-data="mainComponent"
+        class="flex flex-row gap-10 shadow-md rounded-lg p-8 w-full bg-slate-200 dark:bg-slate-800 m-5 text-gray-700 dark:text-gray-200 main-card"
+        x-cloak>
+        <div class="status" x-show="connected">
+          <h2 class="text-2xl font-semibold mb-6 text-center">Water Level</h2>
+          <div class="status-card">
+            <div class="box">
+              <div class="progress-container">
+                <div class="progress-circle">
+                  <svg width="150" height="150">
+                    <circle class="circle-bg" cx="75" cy="75" r="60" />
+                    <circle class="circle-progress" :stroke-dashoffset="offset" cx="75" cy="75" r="60" />
+                  </svg>
+                  <div class="progress-text" x-text="waterLevelMessage"></div>
                 </div>
               </div>
-              
-              <div x-show="!loading" class="box">
-                <div>
-                  Wifi:
-                  <span
-                    x-text="wifiStatus ? 'Connected': 'Not Connected'"
-                  ></span>
-                </div>
-              </div> 
+            </div>
+            <div x-show="!loading" class="box">
+              <div>
+                Wifi:
+                <span x-text="wifiStatus ? 'Connected': 'Not Connected'"></span>
+              </div>
+            </div>
 
-              <div x-show="!loading" class="box justify-between flex-row">
-                <div>
-                  Is Pump On:
-                  <span
-                    x-text="isPumpOn ? 'YES': 'NO'"
-                  ></span>
-                </div>
+            <div x-show="!loading" class="box">
+              <div>
+                Last Updated At:
+                <span x-text="datetime"></span>
 
-                <div>
-                  <button type="button"
-                    class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
-                    x-bind:disabled="loading" @click="startPump" x-show="!isPumpOn">
-                    Start
-                  </button>
-                  <button type="button"
-                    class="inline-flex ml-2 items-center px-4 ml-2 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150 bg-red-500 dark:bg-red-500"
-                    x-bind:disabled="loading" @click="stopPump" x-show="isPumpOn">
-                    Stop
-                  </button>
-                </div>
-              </div> 
-              <div x-show="!loading" class="box justify-between flex-row">
-                <div>
-                  SD Card:
-                  <span x-show="sdInfo.total > 0">
-                    <span x-text="sdInfo.usedStr"></span> /
-                    <span x-text="sdInfo.totalStr"></span>
-                    (<span x-text="sdInfo.precent"></span> % used)
-                  </span>
-                  <span x-show="sdInfo.total == 0">Not Available</span>
-                </div>
+                &nbsp;<b>(<a target="_blank" :href="getLink(1)">History</a> | <a target="_blank" :href="getLink(0)">Logs</a> | <a target="_blank" :href="getLink(2)">Boot Logs</a>)</b>
+              </div>
+            </div>
 
-                <div>
-                  <button type="button"
-                    class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
-                    x-bind:disabled="loading" @click="loadSdInfo(true)" x-show="sdInfo.total > 0">
-                    Refresh
-                  </button>
-                </div>
+            <div x-show="!loading" class="box justify-between flex-row">
+              <div>
+                Is Pump On:
+                <span x-text="isPumpOn ? 'YES': 'NO'"></span>
               </div>
 
-              <div x-show="!loading" class="box">
-                <div>
-                  Distance: <span x-text="deviceToWaterDistance"></span>
-                </div>
+              <div>
+                <button type="button"
+                  class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
+                  x-bind:disabled="loading" @click="startPump" x-show="!isPumpOn">
+                  Start
+                </button>
+                <button type="button"
+                  class="inline-flex ml-2 items-center px-4 ml-2 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150 bg-red-500 dark:bg-red-500"
+                  x-bind:disabled="loading" @click="stopPump" x-show="isPumpOn">
+                  Stop
+                </button>
+              </div>
+            </div>
+            <div x-show="!loading" class="box justify-between flex-row">
+              <div>
+                SD Card:
+                <span x-show="sdInfo.total > 0">
+                  <span x-text="sdInfo.usedStr"></span> /
+                  <span x-text="sdInfo.totalStr"></span>
+                  (<span x-text="sdInfo.precent"></span> % used)
+                </span>
+                <span x-show="sdInfo.total == 0">Not Available</span>
+              </div>
+
+              <div>
+                <button type="button"
+                  class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
+                  x-bind:disabled="loading" @click="loadSdInfo(true)" x-show="sdInfo.total > 0">
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            <div x-show="!loading" class="box">
+              <div>
+                Distance: <span x-text="deviceToWaterDistance"></span>
               </div>
             </div>
           </div>
-          <div class="settings">
-            <h2
-              class="text-2xl font-semibold mb-6 text-center"
-              x-show="connected"
-            >
-              Settings (
-              <a
-                href="#"
-                @click.prevent="showSettings = !showSettings"
-                x-text="showSettings ? 'Hide' : 'Show'"
-              ></a>
-              )
-            </h2>
-            <form x-show="connected && showSettings">
-              <div class="mb-4">
-                <div class="">
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Wifi SSID
+        </div>
+        <div class="settings">
+          <h2 class="text-2xl font-semibold mb-6 text-center" x-show="connected">
+            Settings (
+            <a href="#" @click.prevent="showSettings = !showSettings" x-text="showSettings ? 'Hide' : 'Show'"></a>
+            )
+          </h2>
+          <form x-show="connected && showSettings">
+            <div class="mb-4">
+              <div class="">
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Wifi SSID
                   <input
                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                    type="text"
-                    x-model="settings_form.wifi_ssid"
-                    autofocus="autofocus"
-                  />
+                    type="text" x-model="settings_form.wifi_ssid" autofocus="autofocus" />
 
-                  </label>
-                </div>
+                </label>
               </div>
-              <div class="mb-4">
-                <div class="">
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Wifi Password (
-                    <a
-                      href="#"
-                      @click.prevent="showWifiPass = !showWifiPass"
-                      x-text="showWifiPass ? 'Hide' : 'Show'"
-                    ></a>
-                    )
-                  <input
-                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                    id="name"
-                    :type="showWifiPass ? 'text' : 'password'"
-                    x-model="settings_form.wifi_password"
-                    autofocus="autofocus"
-                  />
-
-                  </label>
-                </div>
-              </div>
-
-              <!-- Duration for Ping -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Duration for Ping (Seconds)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.duration_for_ping"
-                      step="1"
-                      placeholder="Enter duration for ping"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Top End from Device -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Top End from Device (cm)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.top_end_from_device"
-                      step="1"
-                      placeholder="Enter top end from device"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Bottom End from Device -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Bottom End from Device (cm)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.bottom_end_from_device"
-                      step="1"
-                      placeholder="Enter bottom end from device"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Delay Start Switch -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Delay Start Switch (Seconds)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.delay_start_switch"
-                      step="1"
-                      placeholder="Enter delay start switch"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Delay Stop Switch -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Delay Stop Switch (Seconds)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.delay_stop_switch"
-                      step="1"
-                      placeholder="Enter delay stop switch"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Full Threshold -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Full Threshold (1% - 100%)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.full_threshold"
-                      step="1"
-                      placeholder="Enter full threshold"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Empty Threshold -->
-              <div class="mb-4">
-                <div>
-                  <label
-                    class="block font-medium text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Empty Threshold (1% - 100%)
-                    <input
-                      class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
-                      type="number"
-                      x-model.number="settings_form.empty_threshold"
-                      step="1"
-                      placeholder="Enter empty threshold"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <!-- Auto Off on Full -->
-              <div class="mb-4">
-                <div>
-                  <label class="flex items-center">
-                    <input
-                      class="form-checkbox"
-                      type="checkbox"
-                      x-model="settings_form.auto_off_on_full"
-                    />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">
-                      &nbsp;Auto Off on Full
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Auto On on Empty -->
-              <div class="mb-4">
-                <div>
-                  <label class="flex items-center">
-                    <input
-                      class="form-checkbox"
-                      type="checkbox"
-                      x-model="settings_form.auto_on_on_empty"
-                    />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">
-                      &nbsp;Auto On on Empty
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Alarm Enabled -->
-              <div class="mb-4">
-                <div>
-                  <label class="flex items-center">
-                    <input
-                      class="form-checkbox"
-                      type="checkbox"
-                      x-model="settings_form.alarm_enabled"
-                    />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">
-                      &nbsp;Alarm Enabled
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Debug Logging -->
-              <div class="mb-4">
-                <div>
-                  <label class="flex items-center">
-                    <input
-                      class="form-checkbox"
-                      type="checkbox"
-                      x-model="settings_form.debug_logging"
-                    />
-                    <span class="ml-2 text-gray-700 dark:text-gray-300">
-                      &nbsp;Debug Logging
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between">
-                <button
-                  type="button"
-                  class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
-                  x-bind:disabled="loading"
-                  @click="saveSettings"
-                >
-                  Save Settings
-                </button>
-                <button
-                  type="button"
-                  class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150 bg-red-500 dark:bg-red-500"
-                  x-bind:disabled="loading"
-                  @click="restartDevice"
-                >
-                  Restart Device
-                </button>
-              </div>
-            </form>
-
-            <div
-              x-show="!connected"
-              class="flex justify-center items-center flex-col gap-5"
-            >
-              <h2>Divice not connected</h2>
-              <p>Connect to device access point/Wifi and then try again.</p>
             </div>
+            <div class="mb-4">
+              <div class="">
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Wifi Password (
+                  <a href="#" @click.prevent="showWifiPass = !showWifiPass" x-text="showWifiPass ? 'Hide' : 'Show'"></a>
+                  )
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    id="name" :type="showWifiPass ? 'text' : 'password'" x-model="settings_form.wifi_password"
+                    autofocus="autofocus" />
+
+                </label>
+              </div>
+            </div>
+
+            <!-- Duration for Ping -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Duration for Ping (Seconds)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.duration_for_ping" step="1"
+                    placeholder="Enter duration for ping" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Top End from Device -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Top End from Device (cm)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.top_end_from_device" step="1"
+                    placeholder="Enter top end from device" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Bottom End from Device -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Bottom End from Device (cm)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.bottom_end_from_device" step="1"
+                    placeholder="Enter bottom end from device" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Delay Start Switch -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Delay Start Switch (Seconds)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.delay_start_switch" step="1"
+                    placeholder="Enter delay start switch" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Delay Stop Switch -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Delay Stop Switch (Seconds)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.delay_stop_switch" step="1"
+                    placeholder="Enter delay stop switch" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Full Threshold -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Full Threshold (1% - 100%)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.full_threshold" step="1"
+                    placeholder="Enter full threshold" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Empty Threshold -->
+            <div class="mb-4">
+              <div>
+                <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Empty Threshold (1% - 100%)
+                  <input
+                    class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
+                    type="number" x-model.number="settings_form.empty_threshold" step="1"
+                    placeholder="Enter empty threshold" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Auto Off on Full -->
+            <div class="mb-4">
+              <div>
+                <label class="flex items-center">
+                  <input class="form-checkbox" type="checkbox" x-model="settings_form.auto_off_on_full" />
+                  <span class="ml-2 text-gray-700 dark:text-gray-300">
+                    &nbsp;Auto Off on Full
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Auto On on Empty -->
+            <div class="mb-4">
+              <div>
+                <label class="flex items-center">
+                  <input class="form-checkbox" type="checkbox" x-model="settings_form.auto_on_on_empty" />
+                  <span class="ml-2 text-gray-700 dark:text-gray-300">
+                    &nbsp;Auto On on Empty
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Alarm Enabled -->
+            <div class="mb-4">
+              <div>
+                <label class="flex items-center">
+                  <input class="form-checkbox" type="checkbox" x-model="settings_form.alarm_enabled" />
+                  <span class="ml-2 text-gray-700 dark:text-gray-300">
+                    &nbsp;Alarm Enabled
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Debug Logging -->
+            <div class="mb-4">
+              <div>
+                <label class="flex items-center">
+                  <input class="form-checkbox" type="checkbox" x-model="settings_form.debug_logging" />
+                  <span class="ml-2 text-gray-700 dark:text-gray-300">
+                    &nbsp;Debug Logging
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <button type="button"
+                class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150"
+                x-bind:disabled="loading" @click="saveSettings">
+                Save Settings
+              </button>
+              <button type="button"
+                class="inline-flex items-center px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 transition ease-in-out duration-150 bg-red-500 dark:bg-red-500"
+                x-bind:disabled="loading" @click="restartDevice">
+                Restart Device
+              </button>
+            </div>
+          </form>
+
+          <div x-show="!connected" class="flex justify-center items-center flex-col gap-5">
+            <h2>Divice not connected</h2>
+            <p>Connect to device access point/Wifi and then try again.</p>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      document.addEventListener("alpine:init", () => {
-        Alpine.data("mainComponent", () => ({
-          endpoint: "http://esp32-waterlevel.local",
+  <script>
+    document.addEventListener("alpine:init", () => {
+      Alpine.data("mainComponent", () => ({
+        endpoint: "http://esp32-waterlevel.local",
 
-          showWifiPass: false,
-          showSettings: false,
-          wifiStatus: false,
+        showWifiPass: false,
+        showSettings: false,
+        wifiStatus: false,
+        datetime: null,
 
-          sdInfo: {
-            total: 0,
-            used: 0,
-            free: 0,
+        sdInfo: {
+          total: 0,
+          used: 0,
+          free: 0,
 
-            get usedStr(){
-              if(this.used > 1024){
-                return (this.used / 1024).toFixed(2) + " GB";
-              }
-
-              return this.used.toFixed(2) + " MB";
-            },
-
-            get totalStr(){
-              if(this.total > 1024){
-                return (this.total / 1024).toFixed(2) + " GB";
-              }
-
-              return this.total.toFixed(2) + " MB";
-            },
-
-            get freeStr(){
-              if(this.free > 1024){
-                return (this.free / 1024).toFixed(2) + " GB";
-              }
-
-              return this.free.toFixed(2) + " MB";
-            },
-
-            get precent() {
-              return ((this.used / this.total) * 100).toFixed(2);
-            },
-          },
-
-          waterLevel: 0,
-          deviceToWaterDistance: 0,
-          isPumpOn: false,
-
-          switchStates: [],
-
-          settings_form: {
-            wifi_ssid: "",
-            wifi_password: "",
-            wifi_ssid: "",
-            wifi_password: "",
-            duration_for_ping: "",
-            top_end_from_device: "",
-            bottom_end_from_device: "",
-            delay_start_switch: "",
-            delay_stop_switch: "",
-            full_threshold: "",
-            empty_threshold: "",
-            auto_off_on_full: false,
-            auto_on_on_empty: false,
-            alarm_enabled: false,
-            debug_logging: false,
-          },
-
-          connected: false,
-          loading: true,
-
-          init() {
-            if(window.location.hostname !== "localhost"){
-              this.endpoint = window.location.origin;
+          get usedStr() {
+            if (this.used > 1024) {
+              return (this.used / 1024).toFixed(2) + " GB";
             }
 
-            this.setupEvent();
+            return this.used.toFixed(2) + " MB";
           },
 
-          setupEvent() {
-            if (!!window.EventSource) {
-              var source = new EventSource(`${this.endpoint}/events`);
+          get totalStr() {
+            if (this.total > 1024) {
+              return (this.total / 1024).toFixed(2) + " GB";
+            }
 
-              source.addEventListener(
-                "open",
-                (e) => {
-                  this.connected = true;
+            return this.total.toFixed(2) + " MB";
+          },
 
-                  this.loadSettings();
-                  this.loadSdInfo();
+          get freeStr() {
+            if (this.free > 1024) {
+              return (this.free / 1024).toFixed(2) + " GB";
+            }
 
-                  console.log("Events Connected");
-                },
-                false
-              );
-              source.addEventListener(
-                "error",
-                function (e) {
-                  if (e.target.readyState != EventSource.OPEN) {
-                    this.connected = false;
-                    this.loading = false;
-                    console.log("Events Disconnected");
-                  }
-                },
-                false
-              );
+            return this.free.toFixed(2) + " MB";
+          },
 
-              source.addEventListener(
-                "message",
-                (e) => {
-                  console.log("message", e.data);
-                },
-                false
-              );
+          get precent() {
+            return ((this.used / this.total) * 100).toFixed(2);
+          },
+        },
 
-              source.addEventListener("wifi_status", (e) => {
-                let data = JSON.parse(e.data);
+        waterLevel: 0,
+        deviceToWaterDistance: 0,
+        isPumpOn: false,
 
-                this.wifiStatus = data.status ? true : false;
-              });
+        switchStates: [],
 
-              source.addEventListener(
-                "water_level_data",
-                (e) => {
-                  let data = JSON.parse(e.data);
+        settings_form: {
+          wifi_ssid: "",
+          wifi_password: "",
+          wifi_ssid: "",
+          wifi_password: "",
+          duration_for_ping: "",
+          top_end_from_device: "",
+          bottom_end_from_device: "",
+          delay_start_switch: "",
+          delay_stop_switch: "",
+          full_threshold: "",
+          empty_threshold: "",
+          auto_off_on_full: false,
+          auto_on_on_empty: false,
+          alarm_enabled: false,
+          debug_logging: false,
+        },
 
-                  this.waterLevel = data.level;
-                  this.deviceToWaterDistance = data.distance;
-                  this.isPumpOn = !!data.isPumpOn;
+        connected: false,
+        loading: true,
 
+        init() {
+          if (window.location.hostname !== "localhost") {
+            this.endpoint = window.location.origin;
+          }
+
+          this.setupEvent();
+        },
+
+        setupEvent() {
+          if (!!window.EventSource) {
+            var source = new EventSource(`${this.endpoint}/events`);
+
+            source.addEventListener(
+              "open",
+              (e) => {
+                this.connected = true;
+
+                this.loadSettings();
+                this.loadSdInfo();
+
+                console.log("Events Connected");
+              },
+              false
+            );
+            source.addEventListener(
+              "error",
+              function (e) {
+                if (e.target.readyState != EventSource.OPEN) {
+                  this.connected = false;
                   this.loading = false;
-                },
-                false
-              );
+                  console.log("Events Disconnected");
+                }
+              },
+              false
+            );
 
-              source.addEventListener(
-                "switch_state",
-                (e) => {
-                  let data = JSON.parse(e.data);
+            source.addEventListener(
+              "message",
+              (e) => {
+                console.log("message", e.data);
+              },
+              false
+            );
 
-                  this.switchStates.unshift({
-                    state: data.state,
-                    isManual: data.isManual,
-                    time: new Date().toLocaleString(),
-                    level: this.waterLevel,
-                  });
-                },
-                false
-              );
+            source.addEventListener("wifi_status", (e) => {
+              let data = JSON.parse(e.data);
 
-              window.onbeforeunload = function () {
-                source.close();
-              };
-            }
-          },
-
-          offset() {
-            const radius = 60;
-            const circumference = 2 * Math.PI * radius;
-            return circumference * (1 - this.waterLevel / 100);
-          },
-
-          waterLevelMessage() {
-            return this.waterLevel + "%";
-          },
-
-          async get(url) {
-            let data = null;
-
-            try {
-              let response = await fetch(url);
-              try {
-                data = await response.json();
-              } catch (e) {
-                console.log(e);
-              }
-
-              return {
-                status: response.status,
-                statusText: response.statusText,
-                data: data,
-              };
-            } catch (error) {
-              return {
-                status: 500,
-                statusText: "Network error: " + error.message,
-                data: null,
-              };
-            }
-          },
-
-          async post(url, body = {}, headers = {}) {
-            try {
-              let response = await fetch(url, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  ...headers,
-                },
-                body: JSON.stringify(body),
-              });
-
-              let data = await response.json();
-
-              return {
-                status: response.status,
-                statusText: response.statusText,
-                data: data,
-              };
-            } catch (error) {
-              return {
-                status: 500,
-                statusText: "Network error",
-                data: null,
-              };
-            }
-          },
-
-          async loadSettings() {
-            let response = await this.get(`${this.endpoint}/settings`);
-            if (response.status == 200 && response.data) {
-              let data = response.data;
-
-              this.settings_form.wifi_ssid = data.wifiSSID;
-              this.settings_form.wifi_password = data.wifiPassword;
-
-              this.settings_form.wifi_ssid = data.wifiSSID;
-              this.settings_form.wifi_password = data.wifiPassword;
-
-              this.settings_form.duration_for_ping = data.durationForPing;
-              this.settings_form.top_end_from_device = data.topEndFromDevice;
-              this.settings_form.bottom_end_from_device =
-                data.bottomEndFromDevice;
-              this.settings_form.delay_start_switch = data.delayStartSwitch;
-              this.settings_form.delay_stop_switch = data.delayStopSwitch;
-              this.settings_form.full_threshold = data.fullThreshold;
-              this.settings_form.empty_threshold = data.emptyThreshold;
-              this.settings_form.auto_off_on_full = data.autoOffOnFull;
-              this.settings_form.auto_on_on_empty = data.autoOnOnEmpty;
-
-              this.settings_form.alarm_enabled = data.alarmEnabled;
-              this.settings_form.debug_logging = data.debugLogging;
-            }
-          },
-
-          async loadSdInfo(notify) {
-            let response = await this.get(`${this.endpoint}/sd-info`);
-            if (response.status == 200 && response.data) {
-              let data = response.data;
-
-              this.sdInfo.total = data.total;
-              this.sdInfo.used = data.used;
-              this.sdInfo.free = data.free;
-
-              if(notify){
-                alert("SD Card Info Loaded");
-              }
-            }
-          },
-
-          async saveSettings() {
-            if(!confirm("Are you sure you want to save the settings?")){
-              return;
-            }
-
-            this.loading = true;
-            let response = await this.post(`${this.endpoint}/settings`, {
-              wifiSSID: this.settings_form.wifi_ssid,
-              wifiPassword: this.settings_form.wifi_password,
-
-              wifiSSID: this.settings_form.wifi_ssid,
-              wifiPassword: this.settings_form.wifi_password,
-
-              durationForPing: this.settings_form.duration_for_ping,
-              topEndFromDevice: this.settings_form.top_end_from_device,
-              bottomEndFromDevice: this.settings_form.bottom_end_from_device,
-              delayStartSwitch: this.settings_form.delay_start_switch,
-              delayStopSwitch: this.settings_form.delay_stop_switch,
-              fullThreshold: this.settings_form.full_threshold,
-              emptyThreshold: this.settings_form.empty_threshold,
-              autoOffOnFull: this.settings_form.auto_off_on_full,
-              autoOnOnEmpty: this.settings_form.auto_on_on_empty,
-              alarmEnabled: this.settings_form.alarm_enabled,
-              debugLogging: this.settings_form.debug_logging,
+              this.wifiStatus = data.status ? true : false;
             });
 
-            this.loading = false;
-            if (response.status == 200) {
-              alert("Settings saved");
+            source.addEventListener(
+              "water_level_data",
+              (e) => {
+                let data = JSON.parse(e.data);
+
+                this.waterLevel = data.level;
+                this.deviceToWaterDistance = data.distance;
+                this.isPumpOn = !!data.isPumpOn;
+
+                this.setTime(data.time);
+
+                this.loading = false;
+              },
+              false
+            );
+
+            source.addEventListener(
+              "switch_state",
+              (e) => {
+                let data = JSON.parse(e.data);
+
+                this.switchStates.unshift({
+                  state: data.state,
+                  isManual: data.isManual,
+                  time: new Date().toLocaleString(),
+                  level: this.waterLevel,
+                });
+              },
+              false
+            );
+
+            window.onbeforeunload = function () {
+              source.close();
+            };
+          }
+        },
+
+        offset() {
+          const radius = 60;
+          const circumference = 2 * Math.PI * radius;
+          return circumference * (1 - this.waterLevel / 100);
+        },
+
+        waterLevelMessage() {
+          return this.waterLevel + "%";
+        },
+
+        getLink(type) {
+          let url = `/history`;
+
+          if (type != 1) {
+            url = `${this.endpoint}/logs?type=${type}`;
+          }
+
+          return url;
+
+        },
+
+        setTime(time) {
+          const [hours, minutes, seconds] = time.split(':').map(Number);
+
+          let today = new Date();
+
+          let year = today.getFullYear();
+          let month = String(today.getMonth() + 1).padStart(2, '0');
+          let day = String(today.getDate()).padStart(2, '0');
+
+          this.datetime = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+        },
+
+        async get(url) {
+          let data = null;
+
+          try {
+            let response = await fetch(url);
+            try {
+              data = await response.json();
+            } catch (e) {
+              console.log(e);
             }
-          },
 
-          async startPump(){
-            if(!confirm("Are you sure you want to start the pump?")){
-              return;
+            return {
+              status: response.status,
+              statusText: response.statusText,
+              data: data,
+            };
+          } catch (error) {
+            return {
+              status: 500,
+              statusText: "Network error: " + error.message,
+              data: null,
+            };
+          }
+        },
+
+        async post(url, body = {}, headers = {}) {
+          try {
+            let response = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...headers,
+              },
+              body: JSON.stringify(body),
+            });
+
+            let data = await response.json();
+
+            return {
+              status: response.status,
+              statusText: response.statusText,
+              data: data,
+            };
+          } catch (error) {
+            return {
+              status: 500,
+              statusText: "Network error",
+              data: null,
+            };
+          }
+        },
+
+        async loadSettings() {
+          let response = await this.get(`${this.endpoint}/settings`);
+          if (response.status == 200 && response.data) {
+            let data = response.data;
+
+            this.settings_form.wifi_ssid = data.wifiSSID;
+            this.settings_form.wifi_password = data.wifiPassword;
+
+            this.settings_form.wifi_ssid = data.wifiSSID;
+            this.settings_form.wifi_password = data.wifiPassword;
+
+            this.settings_form.duration_for_ping = data.durationForPing;
+            this.settings_form.top_end_from_device = data.topEndFromDevice;
+            this.settings_form.bottom_end_from_device =
+              data.bottomEndFromDevice;
+            this.settings_form.delay_start_switch = data.delayStartSwitch;
+            this.settings_form.delay_stop_switch = data.delayStopSwitch;
+            this.settings_form.full_threshold = data.fullThreshold;
+            this.settings_form.empty_threshold = data.emptyThreshold;
+            this.settings_form.auto_off_on_full = data.autoOffOnFull;
+            this.settings_form.auto_on_on_empty = data.autoOnOnEmpty;
+
+            this.settings_form.alarm_enabled = data.alarmEnabled;
+            this.settings_form.debug_logging = data.debugLogging;
+          }
+        },
+
+        async loadSdInfo(notify) {
+          let response = await this.get(`${this.endpoint}/sd-info`);
+          if (response.status == 200 && response.data) {
+            let data = response.data;
+
+            this.sdInfo.total = data.total;
+            this.sdInfo.used = data.used;
+            this.sdInfo.free = data.free;
+
+            if (notify) {
+              alert("SD Card Info Loaded");
             }
+          }
+        },
 
-            this.loading = true;
+        async saveSettings() {
+          if (!confirm("Are you sure you want to save the settings?")) {
+            return;
+          }
 
-            let response = await this.post(`${this.endpoint}/switch-on`);
-            if (response.status == 200) {
-              alert("Pump Started");
-            }
+          this.loading = true;
+          let response = await this.post(`${this.endpoint}/settings`, {
+            wifiSSID: this.settings_form.wifi_ssid,
+            wifiPassword: this.settings_form.wifi_password,
 
-            this.loading = false;
-          },
+            wifiSSID: this.settings_form.wifi_ssid,
+            wifiPassword: this.settings_form.wifi_password,
 
-          async stopPump(){
-            if(!confirm("Are you sure you want to stop the pump?")){
-              return;
-            }
+            durationForPing: this.settings_form.duration_for_ping,
+            topEndFromDevice: this.settings_form.top_end_from_device,
+            bottomEndFromDevice: this.settings_form.bottom_end_from_device,
+            delayStartSwitch: this.settings_form.delay_start_switch,
+            delayStopSwitch: this.settings_form.delay_stop_switch,
+            fullThreshold: this.settings_form.full_threshold,
+            emptyThreshold: this.settings_form.empty_threshold,
+            autoOffOnFull: this.settings_form.auto_off_on_full,
+            autoOnOnEmpty: this.settings_form.auto_on_on_empty,
+            alarmEnabled: this.settings_form.alarm_enabled,
+            debugLogging: this.settings_form.debug_logging,
+          });
 
-            this.loading = true;
+          this.loading = false;
+          if (response.status == 200) {
+            alert("Settings saved");
+          }
+        },
 
-            let response = await this.post(`${this.endpoint}/switch-off`);
-            if (response.status == 200) {
-              alert("Pump Stopped");
-            }
+        async startPump() {
+          if (!confirm("Are you sure you want to start the pump?")) {
+            return;
+          }
 
-            this.loading = false;
-          },
+          this.loading = true;
 
-          async restartDevice() {
-            if(!confirm("Are you sure you want to restart the device?")){
-              return;
-            }
+          let response = await this.post(`${this.endpoint}/switch-on`);
+          if (response.status == 200) {
+            alert("Pump Started");
+          }
 
-            let response = await this.post(`${this.endpoint}/restart`);
-            if (response.status == 200) {
-              alert("Device Restarted");
-            }
-          },
-        }));
-      });
-    </script>
+          this.loading = false;
+        },
 
-    <script defer src="/index.js"></script>
-  </body>
+        async stopPump() {
+          if (!confirm("Are you sure you want to stop the pump?")) {
+            return;
+          }
+
+          this.loading = true;
+
+          let response = await this.post(`${this.endpoint}/switch-off`);
+          if (response.status == 200) {
+            alert("Pump Stopped");
+          }
+
+          this.loading = false;
+        },
+
+        async restartDevice() {
+          if (!confirm("Are you sure you want to restart the device?")) {
+            return;
+          }
+
+          let response = await this.post(`${this.endpoint}/restart`);
+          if (response.status == 200) {
+            alert("Device Restarted");
+          }
+        },
+      }));
+    });
+  </script>
+
+  <script defer src="/index.js"></script>
+</body>
+
 </html>

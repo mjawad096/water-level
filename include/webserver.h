@@ -99,7 +99,7 @@ public:
         });
 
     server->on(
-        "/loggs/files",
+        "/logs/files",
         HTTP_GET,
         [this](AsyncWebServerRequest *request)
         {
@@ -107,7 +107,7 @@ public:
         });
 
     server->on(
-        "/loggs",
+        "/logs",
         HTTP_GET,
         [this](AsyncWebServerRequest *request)
         {
@@ -218,6 +218,10 @@ public:
     server->on(
         "/", HTTP_GET, [](AsyncWebServerRequest *request)
         { request->send(LittleFS, "/index.html", "text/html"); });
+
+    server->on(
+        "/history", HTTP_GET, [](AsyncWebServerRequest *request)
+        { request->send(LittleFS, "/history.html", "text/html"); });
 
     server->on(
         "/index.css", HTTP_GET, [](AsyncWebServerRequest *request)
