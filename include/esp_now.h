@@ -40,24 +40,20 @@ public:
     {
         memcpy(&waterLevelData, incomingData, sizeof(waterLevelData));
 
-        Serial.print("Bytes received: ");
-        Serial.println(len);
+        Serial.printf("Bytes received: %d\n", len);
 
         lastUpdatedMillis = millis();
 
-        Serial.print("Water Level: ");
-        Serial.println(waterLevelData.level);
-        Serial.print("Distance: ");
-        Serial.println(waterLevelData.distance);
-        Serial.print("Pump Status: ");
-        Serial.println(waterLevelData.isPumpOn ? "ON" : "OFF");
-        Serial.print("Full Threshold: ");
-        Serial.println(waterLevelData.fullThreshold);
-        Serial.print("Empty Threshold: ");
-        Serial.println(waterLevelData.emptyThreshold);
-        Serial.print("Size: ");
-        Serial.print(sizeof(waterLevelData));
-        Serial.println();
+        Serial.printf("Water Level: %d\nDistance: %.2f\nPump Status: %s\nFull Threshold: %ld\nEmpty Threshold: %ld\nAlarm Enabled: %s\nTime: %s\n",
+                      waterLevelData.level,
+                      waterLevelData.distance,
+                      waterLevelData.isPumpOn ? "ON" : "OFF",
+                      waterLevelData.fullThreshold,
+                      waterLevelData.emptyThreshold,
+                      waterLevelData.alarmEnabled ? "ON" : "OFF",
+                      waterLevelData.time);
+
+        Serial.printf("Size: %d\n", sizeof(waterLevelData));
     }
 
     bool isLastUpdatedMoreThan(int minutes)
@@ -66,5 +62,5 @@ public:
     }
 };
 
-WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1};
+WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00"};
 unsigned long EspNow::lastUpdatedMillis = 0;

@@ -30,6 +30,8 @@ void setup()
     waterLevelData = &espNow.waterLevelData;
 
     led.off();
+
+    display.setLevelData(waterLevelData);
 }
 
 void loop()
@@ -47,14 +49,14 @@ void loop()
     }
     else
     {
-        led.blinkFor(1500);
+        led.blinkFor(1000);
     }
 
-    if (isLowLevel())
+    if (isLowLevel() && waterLevelData->alarmEnabled)
     {
-        buzzer.start(2, 3600000, 400); // 1 hour
+        buzzer.start(2, 60000, 400); // 1 minute
     }
-    else if (isHighLevel())
+    else if (isHighLevel() && waterLevelData->alarmEnabled)
     {
         buzzer.start(3, 3600000, 200); // 1 hour
     }
@@ -63,7 +65,7 @@ void loop()
         buzzer.stop(true);
     }
 
-    display.displayLevel(waterLevelData->level);
+    display.displayLevel();
 }
 
 bool isLowLevel()

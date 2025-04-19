@@ -1,6 +1,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <ESP8266WiFi.h>
+#include <waterlevel.h>
 
 #pragma once
 
@@ -17,6 +18,8 @@ private:
     unsigned long lastDisplayIpTime = 0;
     unsigned int displayIp = 1;
     unsigned long levelDisplayStartMillis = -1;
+
+    WaterLevelData *levelData = nullptr;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -45,9 +48,14 @@ public:
         }
     }
 
-    void displayLevel(int level)
+    void setLevelData(WaterLevelData *data)
     {
-        if (!dispalyInitialized)
+        levelData = data;
+    }
+
+    void displayLevel()
+    {
+        if (!dispalyInitialized || levelData == nullptr)
         {
             return;
         }
@@ -58,17 +66,7 @@ public:
         }
 
         int levelStartCursor = 15;
-        int levelCursorSize = 5;
-
-        if (level == 100)
-        {
-            levelStartCursor = 5;
-        }
-
-        if (canPrintIp())
-        {
-            levelCursorSize = 4;
-        }
+        int levelCursorSize = 4;
 
         display.clearDisplay();
 
@@ -82,22 +80,23 @@ public:
 
         display.setCursor(levelStartCursor, 20);
         display.setTextSize(levelCursorSize);
-        display.print(level);
+        display.print(levelData->level);
         display.println('%');
 
         display.setCursor(0, 55);
         display.setTextSize(1);
 
-        printIp();
+        if (!printIp())
+            display.println("Time: " + String(levelData->time));
 
         display.display();
     }
 
-    void printIp()
+    bool printIp()
     {
         if (!canPrintIp())
         {
-            return;
+            return false;
         }
 
         if (millis() - lastDisplayIpTime > 5000)
@@ -137,6 +136,8 @@ public:
         }
 
         display.println(ipMessage);
+
+        return true;
     }
 
     bool canPrintIp()
