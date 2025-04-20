@@ -26,7 +26,8 @@
                     <div class="mb-4">
                         <div class="">
                             <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
-                                Date
+                                Date 
+                                <b x-show="!loading">(<a href="#" @click.prevent="fetchData(false)">Refresh</a>)</b>
                                 <select
                                     class="dark:[color-scheme:dark] border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm mt-1 block w-full"
                                     type="text" x-model="selectedDate" autofocus="autofocus">
@@ -145,13 +146,15 @@
                     }
                 },
 
-                fetchData() {
+                fetchData(resetTime) {
                     const apiUrl = `${this.endpoint}/logs?date=${this.selectedDate}`;
 
                     this.loading = true;
 
-                    this.time.from = "00:00";
-                    this.time.to = "23:59";
+                    if(resetTime !== false) {
+                        this.time.from = "00:00";
+                        this.time.to = "23:59";
+                    }
 
                     fetch(apiUrl)
                         .then(res => res.text()) // expects CSV with no headers
@@ -266,18 +269,16 @@
                         },
                         series: [
                             {
+                                name: 'Level',
                                 data: this.chartData.levels,
                                 type: 'line',
-                                // smooth: true,
                                 areaStyle: {}
                             },
                             {
-                                label: 'Pump Status',
+                                name: 'Pump Status',
                                 data: this.chartData.pumpStatus,
                                 type: 'line',
-                                borderColor: 'red',
-                                backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                                tension: 0.3,
+                                smooth: true,
                             }
                         ]
                     };
