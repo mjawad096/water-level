@@ -166,12 +166,17 @@ svg {
     color: #374151;
 }
 
-.bg-green-200 {
-    background-color: rgba(167, 243, 208, 1);
+.progress-bar .progress-bar-container {
+    background: #fff;
+    border: 1px solid #37415061;
 }
 
-.text-green-900 {
-    color: rgba(6, 78, 59, 1);
+.progress-bar .progress-bar-container .progress {
+    background-color: #e2e8f0;
+}
+
+.progress-bar .progress-bar-container .text {
+    color: #374150;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -182,27 +187,40 @@ svg {
     .progress-text {
         color: #ffffff;
     }
+
+    .progress-bar .progress-bar-container {
+        background: #374150;
+        border: 1px solid #fff;
+    }
+
+    .progress-bar .progress-bar-container .progress {
+        background-color: #0f172b;
+    }
+
+    .progress-bar .progress-bar-container .text {
+        color: #fff;
+    }
 }
 
-.chart-container {
+.history .chart-container {
     height: 300px;
     width: 100%;
 }
 
 @media (min-width: 1024px) {
-    .chart-container {
+    .history .chart-container {
         height: 400px;
     }
 }
 
 @media (min-width: 1280px) {
-    .chart-container {
+    .history .chart-container {
         height: 500px;
     }
 }
 
 @media (min-width: 1536px) {
-    .chart-container {
+    .history .chart-container {
         height: 700px;
     }
 }

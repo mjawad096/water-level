@@ -14,8 +14,7 @@
     <!-- Styles -->
 </head>
 
-<body>
-    <!-- <div x-data="history()" x-init="init()"> -->
+<body class="history">
     <div class="font-sans text-gray-900 dark:text-gray-100 antialiased main">
         <div class="flex w-full min-h-screen justify-center items-center bg-white dark:bg-slate-900">
             <div x-data="mainComponent"
@@ -40,11 +39,11 @@
                         </div>
                     </div>
 
-                    <div x-show="loading" class="text-center w-full" style="min-height: 300px;">
-                        <div class="bg-white rounded-xl shadow-sm overflow-hidden p-1">
+                    <div x-show="loading" class="text-center w-full progress-bar">
+                        <div class="progress-bar-container rounded shadow-sm overflow-hidden p-1">
                             <div class="relative h-6 flex items-center justify-center">
-                                <div class="absolute top-0 bottom-0 left-0 rounded-lg w-[75%] bg-green-200" :style="{width: loadProgress + '%', height: '100%'}"></div>
-                                <div class="relative text-green-900 font-medium text-sm">
+                                <div class="progress absolute top-0 bottom-0 left-0" :style="{width: loadProgress + '%', height: '100%'}"></div>
+                                <div class="text relative text-green-900 font-medium text-sm">
                                     <span x-text="loadProgress"></span>%
                                     loaded...
                                 </div>
