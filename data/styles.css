@@ -166,6 +166,14 @@ svg {
     color: #374151;
 }
 
+.bg-green-200 {
+    background-color: rgba(167, 243, 208, 1);
+}
+
+.text-green-900 {
+    color: rgba(6, 78, 59, 1);
+}
+
 @media (prefers-color-scheme: dark) {
     .circle-bg {
         stroke: #e5e7eb;

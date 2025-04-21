@@ -23,7 +23,7 @@
                 x-cloak>
                 <div class="w-full">
                     <h2 class="text-2xl font-semibold mb-6 text-center">Water Level</h2>
-
+                        
                     <div class="mb-4">
                         <div class="">
                             <label class="block font-medium text-sm text-gray-700 dark:text-gray-300">
@@ -40,7 +40,17 @@
                         </div>
                     </div>
 
-                    <div x-show="loading" class="text-center w-full" style="min-height: 300px;">Loading...</div>
+                    <div x-show="loading" class="text-center w-full" style="min-height: 300px;">
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden p-1">
+                            <div class="relative h-6 flex items-center justify-center">
+                                <div class="absolute top-0 bottom-0 left-0 rounded-lg w-[75%] bg-green-200" :style="{width: loadProgress + '%', height: '100%'}"></div>
+                                <div class="relative text-green-900 font-medium text-sm">
+                                    <span x-text="loadProgress"></span>%
+                                    loaded...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div :class="{'opacity-0': loading }">
                         <label for="time" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Time
                             Range:</label>
@@ -69,6 +79,7 @@
                 Alpine.data("mainComponent", () => ({
                     endpoint: "http://esp32-waterlevel.local",
                     chart: null,
+                    loadProgress: 0,
                     chartData: {
                         labels: [],
                         levels: [],
@@ -95,13 +106,9 @@
                         });
     
                         this.generateLast30Days();
-                        this.selectedDate = this.last30Days[0];
-    
-                        // Delay chart rendering until DOM is ready
-                        requestAnimationFrame(() => {
-                            this.fetchData();
-                        });
-    
+
+                        this.fetchData()
+
                         window.addEventListener('resize', () => {
                             if(chartInstance) {
                                 chartInstance.resize();
@@ -121,7 +128,7 @@
                         });
     
                         this.$watch('isDark', (newValue) => {
-                            this.renderChart();
+                            this.renderChart(true);
                         });
     
                         let debouncedCalculate = this.debounce(() => {
@@ -153,8 +160,41 @@
     
                             this.last30Days.push(`${year}-${month}-${day}`);
                         }
+
+                        this.selectedDate = this.last30Days[0];
+
                     },
-    
+                    
+                    downloadCSV() {
+                        return new Promise((resolve, reject) => {
+                            const apiUrl = `${this.endpoint}/logs?date=${this.selectedDate}`;
+
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('GET', apiUrl, true);
+
+                            xhr.onprogress = (event) => {
+                                if (event.lengthComputable) {
+                                    this.loadProgress = Math.floor((event.loaded / event.total) * 100);
+                                }
+                            };
+
+                            xhr.onload = () => {
+                                if (xhr.status === 200) {
+                                    try {
+                                        resolve(xhr.responseText.trim());
+                                    } catch (err) {
+                                        reject(err);
+                                    }
+                                } else {
+                                    reject(new Error(`Request failed with status ${xhr.status}`));
+                                }
+                            };
+
+                            xhr.onerror = reject;
+
+                            xhr.send();
+                        });
+                    },
                     fetchData(resetTime) {
                         const apiUrl = `${this.endpoint}/logs?date=${this.selectedDate}`;
     
@@ -165,8 +205,7 @@
                             this.time.to = "23:59";
                         }
     
-                        fetch(apiUrl)
-                            .then(res => res.text()) // expects CSV with no headers
+                        this.downloadCSV()
                             .then(csv => csv.trim().split('\n').map(row => row.split(',')))
                             .then(rows => {
                                 const dataPerMinute = {};
@@ -212,7 +251,10 @@
                             .then(logs => {
                                 this.logs = logs;
                             })
-                            .catch(err => console.error('Fetch error:', err));
+                            .catch(err => {
+                                alert('Error fetching data. Please try again later.');
+                                console.error('Fetch error:', err)
+                            });
                     },
     
                     calculateChartData() {
@@ -256,14 +298,22 @@
                         }
                     },
     
-                    renderChart() {
-                        if (chartInstance) {
-                            chartInstance.dispose();
+                    renderChart(dispose) {
+                        if(dispose){
+                            if(chartInstance){
+                                chartInstance.dispose();
+
+                                chartInstance = null;
+                            }
                         }
-    
-                        chartInstance = echarts.init(this.$refs.canvas, this.isDark ? 'dark' : null);
-    
-                        const option = {
+
+                        if(!chartInstance){
+                            chartInstance = echarts.init(this.$refs.canvas, this.isDark ? 'dark' : null);
+                        } else {
+                            chartInstance.clear();
+                        }
+
+                        chartInstance.setOption({
                             tooltip: {
                                 trigger: 'axis',
                             },
@@ -313,9 +363,7 @@
                                     smooth: true,
                                 }
                             ]
-                        };
-    
-                        chartInstance.setOption(option);
+                        });
     
                         this.loading = false;
                     }
