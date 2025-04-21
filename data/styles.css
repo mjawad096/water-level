@@ -175,3 +175,26 @@ svg {
         color: #ffffff;
     }
 }
+
+.chart-container {
+    height: 300px;
+    width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .chart-container {
+        height: 400px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .chart-container {
+        height: 500px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .chart-container {
+        height: 700px;
+    }
+}
