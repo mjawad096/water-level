@@ -123,7 +123,7 @@ public:
         });
 
     events->onConnect(
-        [](AsyncEventSourceClient *client)
+        [this](AsyncEventSourceClient *client)
         {
           if (client->lastId())
           {
@@ -131,7 +131,9 @@ public:
           }
           // send event with message "hello!", id current millis
           // and set reconnect delay to 1 second
-          client->send("hello!", NULL, millis(), 10000);
+          client->send("hello!", NULL, millis(), 5000);
+
+          sendWifiStatus(client);
         });
 
     server->addHandler(events);
@@ -244,24 +246,27 @@ public:
       ESP.restart();
     }
   }
-  void sendWifiStatus()
+
+  void sendWifiStatus(AsyncEventSourceClient *client = nullptr)
   {
-    if (millis() - lastWifiStatusSent < wifiStatusInterval)
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "{\"status\": %d}\n\n", WiFi.status() == WL_CONNECTED);
+
+    if (client != nullptr)
     {
-      return;
+      client->send(buffer, "wifi_status", millis());
     }
+    else
+    {
+      if (millis() - lastWifiStatusSent < wifiStatusInterval)
+      {
+        return;
+      }
 
-    lastWifiStatusSent = millis();
+      lastWifiStatusSent = millis();
 
-    int bufferSize = 20;
-    char *buffer = new char[bufferSize];
-
-    // Format the data into the allocated buffer
-    snprintf(buffer, bufferSize, "{\"status\": %d}\n\n", WiFi.status() == WL_CONNECTED);
-
-    events->send(buffer, "wifi_status", millis());
-
-    delete[] buffer;
+      events->send(buffer, "wifi_status", millis());
+    }
   }
 
   void setWaterLevel(WaterLevelData *levelData)
@@ -272,17 +277,10 @@ public:
       return;
     }
 
-    char *dataChars = levelData->formatForSSEvent();
+    char dataChars[WD_BUFFER_SIZE];
 
-    if (dataChars == nullptr)
-    {
-      LOGL("Error: Memory allocation failed for SSE event.");
-
-      return;
-    }
+    levelData->formatForSSEvent(dataChars);
 
     events->send(dataChars, "water_level_data", millis());
-
-    delete[] dataChars;
   }
 };

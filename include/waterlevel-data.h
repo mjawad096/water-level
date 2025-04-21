@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#define WD_BUFFER_SIZE 100
+
 struct __attribute__((packed)) WaterLevelData
 {
     int level;
@@ -28,22 +30,16 @@ struct __attribute__((packed)) WaterLevelData
     WaterLevelData(double l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
         : WaterLevelData(static_cast<int>(round(l)), d, o, eth, fth, alarm, t) {}
 
-    char *formatForSSEvent()
+    void formatForSSEvent(char *buffer)
     {
-        int bufferSize = 100;
-
-        char *buffer = new char[bufferSize];
-
         // Format the data into the allocated buffer
         snprintf(
             buffer,
-            bufferSize,
+            WD_BUFFER_SIZE,
             "{\"level\": %d, \"distance\": %.2f, \"isPumpOn\": %s, \"time\": \"%s\"}\n\n",
             level,
             distance,
             isPumpOn ? "true" : "false",
             time);
-
-        return buffer;
     }
 };
