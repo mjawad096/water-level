@@ -198,6 +198,7 @@
                     fetchData(resetTime) {
                         const apiUrl = `${this.endpoint}/logs?date=${this.selectedDate}`;
     
+                        this.loadProgress = 0;
                         this.loading = true;
     
                         if (resetTime !== false) {
