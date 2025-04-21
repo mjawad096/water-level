@@ -244,7 +244,7 @@
                                     const avgLevel = levels.reduce((a, b) => a + b, 0) / levels.length;
                                     const pumpWasOn = pumpStatuses.some(status => status === 1) ? 100 : 0;
     
-                                    logs.push([time, avgLevel, pumpWasOn]);
+                                    logs.push([time, avgLevel.toFixed(0), pumpWasOn]);
                                 }
     
                                 return logs;
@@ -362,6 +362,11 @@
                                     data: this.chartData.pumpStatus,
                                     type: 'line',
                                     smooth: true,
+                                    tooltip: {
+                                        valueFormatter: function (value) {
+                                            return value ? 'ON' : 'OFF';
+                                        }
+                                    }
                                 }
                             ]
                         });
