@@ -8,5 +8,5 @@ struct __attribute__((packed)) WaterLevelData
     long fullThreshold;
     long emptyThreshold;
     bool alarmEnabled;
-    char time[9];
+    char time[12];
 };

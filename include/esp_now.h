@@ -62,5 +62,5 @@ public:
     }
 };
 
-WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00"};
+WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00 AM"};
 unsigned long EspNow::lastUpdatedMillis = 0;
