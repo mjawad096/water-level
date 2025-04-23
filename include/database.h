@@ -278,7 +278,7 @@ public:
             esp_reset_reason_t reason = esp_reset_reason();
 
             logMessage += "================ Boot ================\n";
-            logMessage += "Date time       : " + TimeManager::getDateTimeString() + "\n";
+            logMessage += "Date time       : " + TimeManager::getDateTimeString(true) + "\n";
             logMessage += "CPU Frequency   : " + String(ESP.getCpuFreqMHz()) + " MHz\n";
             logMessage += "Sketch Size     : " + String(ESP.getSketchSize()) + " bytes\n";
             logMessage += "Flash Chip Size : " + String(ESP.getFlashChipSize()) + " bytes\n";

@@ -19,6 +19,7 @@ private:
     String apSSID;
     unsigned long lastDisplayIpTime = 0;
     unsigned int displayIp = 1;
+    unsigned long levelDisplayStartMillis = -1;
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -93,9 +94,22 @@ public:
         display.setCursor(0, 55);
         display.setTextSize(1);
 
+        if (!printIp())
+            display.println("Time: " + String(levelData->time));
+
+        display.display();
+    }
+
+    bool printIp()
+    {
+        if (!canPrintIp())
+        {
+            return false;
+        }
+
         if (millis() - lastDisplayIpTime > 5000)
         {
-            displayIp = (displayIp % 5) + 1;
+            displayIp = (displayIp % 4) + 1;
 
             lastDisplayIpTime = millis();
         }
@@ -124,15 +138,21 @@ public:
             mac.replace(":", "");
             ipMessage = "APMAC: " + mac;
             break;
-
-        case 5:
-            ipMessage = "Time: " + TimeManager::getTimeString();
-            break;
         }
 
         display.println(ipMessage);
 
-        display.display();
+        return true;
+    }
+
+    bool canPrintIp()
+    {
+        if (millis() - levelDisplayStartMillis > (60 * 1000))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     void displayText(String text, bool clear = true)

@@ -14,10 +14,21 @@ private:
     // Private constructor to prevent instantiation
     TimeManager() {}
 
-    static String getDateTimeString(struct tm *timeInfo)
+    static String getDateTimeString(struct tm *timeInfo, bool _12HourFormat = false)
     {
-        char buffer[20];
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeInfo);
+        if (timeInfo == nullptr)
+        {
+            return String(millis());
+        }
+
+        char buffer[_12HourFormat ? 23 : 20];
+
+        strftime(
+            buffer,
+            sizeof(buffer),
+            _12HourFormat ? "%Y-%m-%d %r" : "%Y-%m-%d %T",
+            timeInfo);
+
         return String(buffer);
     }
 
@@ -34,15 +45,20 @@ private:
         return String(buffer);
     }
 
-    static String getTimeString(struct tm *timeInfo)
+    static String getTimeString(struct tm *timeInfo, bool _12HourFormat = false)
     {
         if (timeInfo == nullptr)
         {
             return String(millis());
         }
 
-        char buffer[11];
-        strftime(buffer, sizeof(buffer), "%H:%M:%S", timeInfo);
+        char buffer[_12HourFormat ? 12 : 9];
+
+        strftime(
+            buffer,
+            sizeof(buffer),
+            _12HourFormat ? "%r" : "%T",
+            timeInfo);
 
         return String(buffer);
     }
@@ -116,7 +132,7 @@ public:
         }
     }
 
-    static String getDateTimeString()
+    static String getDateTimeString(bool _12HourFormat = false)
     {
         if (!initialized)
         {
@@ -124,7 +140,7 @@ public:
             return String(millis());
         }
 
-        return getDateTimeString(&timeInfo);
+        return getDateTimeString(&timeInfo, _12HourFormat);
     }
 
     static String getDateString()
@@ -138,7 +154,7 @@ public:
         return getDateString(&timeInfo);
     }
 
-    static String getTimeString()
+    static String getTimeString(bool _12HourFormat = false)
     {
         if (!initialized)
         {
@@ -146,7 +162,7 @@ public:
             return String(millis());
         }
 
-        return getTimeString(&timeInfo);
+        return getTimeString(&timeInfo, _12HourFormat);
     }
 
     static struct tm getTimeInfoDaysAgo(int daysAgo)

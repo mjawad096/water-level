@@ -12,7 +12,7 @@ struct __attribute__((packed)) WaterLevelData
     long fullThreshold;
     long emptyThreshold;
     bool alarmEnabled;
-    char time[9];
+    char time[12]; // HH:MM:SS AM + null terminator
 
     WaterLevelData(int l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
     {
@@ -23,8 +23,9 @@ struct __attribute__((packed)) WaterLevelData
         emptyThreshold = eth;
         alarmEnabled = alarm;
 
-        strncpy(time, t, 8);
-        time[8] = '\0'; // Ensure null termination
+        int maxCopyLen = sizeof(time) - 1;
+        strncpy(time, t, maxCopyLen);
+        time[maxCopyLen] = '\0'; // Ensure null termination
     }
 
     WaterLevelData(double l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
