@@ -81,21 +81,48 @@ public:
         display.setTextColor(SSD1306_WHITE);
 
         display.setCursor(0, 0);
-        display.setTextSize(1);
-        display.print("Water Level");
-        display.println(" (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")");
-        display.println("-------------------");
 
-        display.setCursor(levelStartCursor, 20);
-        display.setTextSize(4);
-        display.print(levelData->level);
-        display.println('%');
+        if (levelData->isPumpOn)
+        {
+            display.setTextSize(2);
+            display.print("Level:");
+            display.print(levelData->level);
+            display.println('%');
 
-        display.setCursor(0, 55);
+            display.setCursor(0, 25);
+            display.setTextSize(3);
+            display.println("PUMP:ON");
+        }
+        else
+        {
+            display.setTextSize(1);
+            display.print("Water Level");
+            display.println(" (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")");
+            display.println("--------------------");
+
+            int levelStartCursor = 15;
+
+            if (levelData->level == 100)
+            {
+                levelStartCursor = 5;
+            }
+
+            display.setCursor(levelStartCursor, 18);
+            display.setTextSize(5);
+            display.print(levelData->level);
+            display.println('%');
+        }
+
+        int infoCursorCol = 57;
+
         display.setTextSize(1);
+        display.setCursor(0, infoCursorCol);
 
         if (!printIp())
+        {
+            display.setCursor(10, infoCursorCol);
             display.println("Time: " + String(levelData->time));
+        }
 
         display.display();
     }
