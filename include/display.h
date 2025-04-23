@@ -107,13 +107,13 @@ public:
                 levelStartCursor = 5;
             }
 
-            display.setCursor(levelStartCursor, 18);
-            display.setTextSize(5);
+            display.setCursor(levelStartCursor, 20);
+            display.setTextSize(4);
             display.print(levelData->level);
             display.println('%');
         }
 
-        int infoCursorCol = 57;
+        int infoCursorCol = 55;
 
         display.setTextSize(1);
         display.setCursor(0, infoCursorCol);
