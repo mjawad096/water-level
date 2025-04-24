@@ -69,13 +69,6 @@ public:
             return;
         }
 
-        int levelStartCursor = 15;
-
-        if (levelData->level == 100)
-        {
-            levelStartCursor = 5;
-        }
-
         display.clearDisplay();
 
         display.setTextColor(SSD1306_WHITE);
@@ -100,11 +93,15 @@ public:
             display.println(" (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")");
             display.println("--------------------");
 
-            int levelStartCursor = 15;
+            int levelStartCursor = 40;
 
-            if (levelData->level == 100)
+            if (levelData->level > 99)
             {
-                levelStartCursor = 5;
+                levelStartCursor = 16;
+            }
+            else if (levelData->level == -1 || levelData->level > 9)
+            {
+                levelStartCursor = 28;
             }
 
             display.setCursor(levelStartCursor, 20);
