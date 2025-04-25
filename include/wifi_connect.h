@@ -46,12 +46,16 @@ public:
         LOG("\n\n");
         LOGL(" --- Database initialized --- ");
 
+        display->displayText("DB: initialized");
+
         TelnetLogger::setup();
-        OtaManager::setup();
+        OtaManager::setup(display);
 
         initMDNS();
 
         logInfo();
+
+        delay(2000);
     }
 
     void logInfo()

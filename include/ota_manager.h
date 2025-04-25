@@ -3,36 +3,62 @@
 #include <ArduinoOTA.h>
 #include <WiFi.h>
 #include <logger.h>
+#include <display.h>
+
+enum UpdateType
+{
+    NONE,
+    FLASH,
+    FILESYSTEM,
+};
 
 class OtaManager
 {
 private:
     static bool initialized;
+    static unsigned int lastProgress;
+
+    static UpdateType updateType;
+    static Display *display;
 
     // Private constructor to prevent instantiation
     OtaManager() {}
 
     static void onStart()
     {
-        String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
+        updateType = (ArduinoOTA.getCommand() == U_FLASH) ? UpdateType::FLASH : UpdateType::FILESYSTEM;
 
-        LOGL("OTA Start: Updating " + type);
+        display->setOtaInProgress(true);
+
+        display->displayText("OTA: Started");
     }
 
     static void onEnd()
     {
-        LOGL("OTA Update finished. Rebooting...");
+        display->displayText("OTA: Rebooting...", false);
+
+        delay(1500);
     }
 
     static void onProgress(unsigned int progress, unsigned int total)
     {
-        // Avoid heavy logging here, but optional light progress
-        Serial.printf("OTA Progress: %u%%\r", (progress * 100) / total);
+        unsigned int currentProgress = static_cast<unsigned int>((progress * 100) / total);
+
+        if (currentProgress == lastProgress || (currentProgress % 3 != 0 && currentProgress != 100))
+            return;
+
+        display->displayText("OTA: Started");
+
+        display->displayText("OTA: " + String(updateType == UpdateType::FLASH ? "Sketch..." : "Filesystem..."), false);
+
+        display->displayText("OTA: Progress " + String(currentProgress) + "%", false);
+
+        lastProgress = currentProgress;
     }
 
     static void onError(ota_error_t error)
     {
-        String message = "OTA Error: ";
+        String message = "OTA: ";
 
         switch (error)
         {
@@ -56,20 +82,31 @@ private:
             break;
         }
 
-        LOGL(message);
+        display->displayText(message, false);
+        delay(2000);
+
+        display->displayText("OTA: Rebooting...", true);
+        delay(1500);
+
+        // Restart the ESP32
+        ESP.restart();
     }
 
 public:
-    static void setup(const char *hostname = "ESP32-Waterlevel")
+    static void setup(Display *d)
     {
         if (initialized)
             return;
 
+        display = d;
+
         if (WiFi.status() != WL_CONNECTED)
         {
-            LOGL("OTA setup failed: WiFi not connected.");
+            display->displayText("OTA: NO WIFI.", false);
             return;
         }
+
+        const char *hostname = "ESP32-Waterlevel";
 
         ArduinoOTA.setHostname(hostname);
 
@@ -80,7 +117,7 @@ public:
 
         ArduinoOTA.begin();
 
-        LOGL("OTA Ready. Hostname: " + String(hostname));
+        display->displayText("OTA: Ready", false);
 
         initialized = true;
     }
@@ -98,3 +135,6 @@ public:
 
 // Define the static member
 bool OtaManager::initialized = false;
+unsigned int OtaManager::lastProgress = 0;
+UpdateType OtaManager::updateType = UpdateType::NONE;
+Display *OtaManager::display = nullptr;

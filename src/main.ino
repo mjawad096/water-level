@@ -113,6 +113,8 @@ void loop()
         buzzer.stop(true);
     }
 
+    display.handlePixelRefresher();
+
     if (millis() - lastPingTime < settings.durationForPing * 1000)
     {
         return;
