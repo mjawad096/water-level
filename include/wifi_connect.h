@@ -50,7 +50,7 @@ public:
     String getWifiAPName()
     {
         // D1: WLD_84CCA881BD04
-        // D2: WLD_
+        // D2: WLD_ECFABC965FAA
 
         String mac = WiFi.macAddress();
         mac.replace(":", "");
