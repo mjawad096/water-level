@@ -169,7 +169,7 @@ public:
 
     void displayLevel(WaterLevelData *levelData)
     {
-        if (otaInProgress)
+        if (otaInProgress || refresherRunning)
         {
             return;
         }
@@ -183,11 +183,6 @@ public:
         if (!dispalyInitialized)
         {
             LOGL("Error: Display not initialized.");
-            return;
-        }
-
-        if (refresherRunning)
-        {
             return;
         }
 
