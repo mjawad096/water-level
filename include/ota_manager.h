@@ -15,9 +15,9 @@ class OtaManager
 {
 private:
     static bool initialized;
+    static unsigned int lastProgress;
 
     static UpdateType updateType;
-
     static Display *display;
 
     // Private constructor to prevent instantiation
@@ -26,6 +26,8 @@ private:
     static void onStart()
     {
         updateType = (ArduinoOTA.getCommand() == U_FLASH) ? UpdateType::FLASH : UpdateType::FILESYSTEM;
+
+        display->setOtaInProgress(true);
 
         display->displayText("OTA: Started");
     }
@@ -39,14 +41,18 @@ private:
 
     static void onProgress(unsigned int progress, unsigned int total)
     {
+        unsigned int currentProgress = static_cast<unsigned int>((progress * 100) / total);
+
+        if (currentProgress == lastProgress || (currentProgress % 3 != 0 && currentProgress != 100))
+            return;
+
         display->displayText("OTA: Started");
 
         display->displayText("OTA: " + String(updateType == UpdateType::FLASH ? "Sketch..." : "Filesystem..."), false);
 
-        String p = String(static_cast<unsigned int>((progress * 100) / total));
+        display->displayText("OTA: Progress " + String(currentProgress) + "%", false);
 
-        // Avoid heavy logging here, but optional light progress
-        display->displayText("OTA: Progress " + p + "%", false);
+        lastProgress = currentProgress;
     }
 
     static void onError(ota_error_t error)
@@ -71,7 +77,7 @@ private:
             message += "End Failed";
             break;
         default:
-            message += "Unknown";
+            message += "Unknown Error";
             break;
         }
 
@@ -123,5 +129,6 @@ public:
 
 // Define the static member
 bool OtaManager::initialized = false;
+unsigned int OtaManager::lastProgress = 0;
 UpdateType OtaManager::updateType = UpdateType::NONE;
 Display *OtaManager::display = nullptr;

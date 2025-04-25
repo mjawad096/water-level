@@ -30,6 +30,8 @@ private:
     const int totalRefresherCycles = 100;
     const unsigned long refresherInterval = 400.0; // ms
 
+    bool otaInProgress = false;
+
     WaterLevelData *levelData = nullptr;
 
     bool isNightTime(bool checkForMid = false)
@@ -152,9 +154,14 @@ public:
         levelData = data;
     }
 
+    void setOtaInProgress(bool otaInProgress)
+    {
+        this->otaInProgress = otaInProgress;
+    }
+
     void displayLevel()
     {
-        if (!dispalyInitialized || levelData == nullptr)
+        if (otaInProgress || !dispalyInitialized || levelData == nullptr)
         {
             return;
         }
