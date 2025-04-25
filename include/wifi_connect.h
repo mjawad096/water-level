@@ -71,6 +71,7 @@ public:
 
     void setupAccessPoint()
     {
+        // WL_1C72A8F7A608
         String apSSID = getWifiAPName();
 
         WiFi.softAP(apSSID, "", 1, 1);

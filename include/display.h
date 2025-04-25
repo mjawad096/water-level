@@ -34,14 +34,10 @@ private:
 
     bool otaInProgress = false;
 
-    WaterLevelData *levelData = nullptr;
-
     bool isNightTime(bool checkForMid = false)
     {
-        if (levelData == nullptr)
-            return false;
+        String timeStr = TimeManager::getTimeString(true);
 
-        String timeStr = levelData->time;
         if (timeStr.length() < 10)
             return false; // Basic sanity check
 
@@ -66,8 +62,8 @@ private:
         }
 
         // Now hour is in 0–23
-        // Night time is from 18 (6PM) to 5:59 AM (before 6)
-        return (hour >= 18 || hour < 6);
+        // Night time is from 00 (12Am) to 3:59 AM (before 4)
+        return (hour >= 00 && hour < 4);
     }
 
     bool isMidnight()
@@ -75,11 +71,18 @@ private:
         return isNightTime(true);
     }
 
+    void dimDisplay(bool dim)
+    {
+        display.ssd1306_command(SSD1306_SETCONTRAST);
+        display.ssd1306_command(dim ? 0x10 : 0xFF); // 0x10 = dimmed, 0xFF = full brightness
+    }
+
     void updateDisplayEffects()
     {
         unsigned long currentMillis = millis();
 
         display.invertDisplay(isNightTime());
+        // dimDisplay(isNightTime());
 
         // Pixel shift every 10 seconds
         if (currentMillis - lastShiftTime >= 10000)
@@ -135,7 +138,6 @@ public:
         unsigned long currentMillis = millis();
 
         if (isMidnight() && !refresherRunning)
-
         {
             refresherRunning = true;
             refresherCycle = 0;
@@ -186,11 +188,11 @@ public:
             return;
         }
 
-        updateDisplayEffects();
-
         display.clearDisplay();
 
         display.setTextColor(SSD1306_WHITE);
+
+        updateDisplayEffects();
 
         display.setCursor(xOffset, yOffset);
 
@@ -307,6 +309,7 @@ public:
 
         if (clear)
         {
+            display.invertDisplay(false);
             display.clearDisplay();
             display.setCursor(0, 0);
         }
