@@ -24,12 +24,11 @@ private:
     unsigned long lastShiftTime = 0;
     unsigned long lastInvertTime = 0;
 
-    bool refresherRunning = false;
+    bool refresherRunning = true;
     int refresherCycle = 0;
     unsigned long lastRefresherStep = 0;
-    const int totalRefresherCycles = 10;
-    const int refresherInterval = 200; // ms
-    bool refresherRanToday = false;
+    const int totalRefresherCycles = 100;
+    const unsigned long refresherInterval = 400.0; // ms
 
     WaterLevelData *levelData = nullptr;
 
@@ -44,6 +43,7 @@ private:
 
         // Extract hours, minutes, and AM/PM
         int hour = timeStr.substring(0, 2).toInt();
+        int minute = timeStr.substring(3, 5).toInt();
         String ampm = timeStr.substring(9, 11); // "AM" or "PM"
 
         // Convert to 24-hour format
@@ -58,7 +58,7 @@ private:
 
         if (checkForMid)
         {
-            return (hour == 0);
+            return (hour == 0 && minute == 0);
         }
 
         // Now hour is in 0–23
@@ -75,21 +75,15 @@ private:
     {
         unsigned long currentMillis = millis();
 
-        // Start refresher once at midnight
-        if (isMidnight() && !refresherRanToday && !refresherRunning)
+        if (isMidnight() && !refresherRunning)
         {
             refresherRunning = true;
             refresherCycle = 0;
             lastRefresherStep = currentMillis;
-            refresherRanToday = true;
-        }
-        else if (!isMidnight())
-        {
-            refresherRanToday = false;
         }
 
         // Handle ongoing refresher cycles
-        if (refresherRunning && currentMillis - lastRefresherStep >= refresherInterval)
+        if (refresherRunning && (currentMillis - lastRefresherStep) >= refresherInterval)
         {
             if (refresherCycle >= totalRefresherCycles)
             {
