@@ -13,6 +13,7 @@
         "iterator": "cpp",
         "*.tcc": "cpp",
         "string": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "ratio": "cpp"
     }
 }

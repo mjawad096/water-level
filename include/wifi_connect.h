@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <display.h>
+#include <ota_manager.h>
 
 #pragma once
 
@@ -18,6 +19,10 @@ public:
         WiFi.mode(WIFI_STA);
 
         connectWifi();
+
+        OtaManager::setup(display);
+
+        delay(2000);
     }
 
     void connectWifi()
@@ -38,7 +43,5 @@ public:
         Serial.println("Connected to WiFi");
 
         display->displayText("Connected to WiFi", false);
-
-        delay(2000);
     }
 };
