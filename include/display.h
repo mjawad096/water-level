@@ -19,7 +19,112 @@ private:
     unsigned int displayIp = 1;
     unsigned long levelDisplayStartMillis = -1;
 
+    int xOffset = 0;
+    int yOffset = 0;
+    unsigned long lastShiftTime = 0;
+    unsigned long lastInvertTime = 0;
+
+    bool refresherRunning = false;
+    int refresherCycle = 0;
+    unsigned long lastRefresherStep = 0;
+    const int totalRefresherCycles = 10;
+    const int refresherInterval = 200; // ms
+    bool refresherRanToday = false;
+
     WaterLevelData *levelData = nullptr;
+
+    bool isNightTime(bool checkForMid = false)
+    {
+        if (levelData == nullptr)
+            return false;
+
+        String timeStr = levelData->time;
+        if (timeStr.length() < 10)
+            return false; // Basic sanity check
+
+        // Extract hours, minutes, and AM/PM
+        int hour = timeStr.substring(0, 2).toInt();
+        String ampm = timeStr.substring(9, 11); // "AM" or "PM"
+
+        // Convert to 24-hour format
+        if (ampm == "PM" && hour != 12)
+        {
+            hour += 12;
+        }
+        else if (ampm == "AM" && hour == 12)
+        {
+            hour = 0;
+        }
+
+        if (checkForMid)
+        {
+            return (hour == 0);
+        }
+
+        // Now hour is in 0–23
+        // Night time is from 18 (6PM) to 5:59 AM (before 6)
+        return (hour >= 18 || hour < 6);
+    }
+
+    bool isMidnight()
+    {
+        return isNightTime(true);
+    }
+
+    void handlePixelRefresher()
+    {
+        unsigned long currentMillis = millis();
+
+        // Start refresher once at midnight
+        if (isMidnight() && !refresherRanToday && !refresherRunning)
+        {
+            refresherRunning = true;
+            refresherCycle = 0;
+            lastRefresherStep = currentMillis;
+            refresherRanToday = true;
+        }
+        else if (!isMidnight())
+        {
+            refresherRanToday = false;
+        }
+
+        // Handle ongoing refresher cycles
+        if (refresherRunning && currentMillis - lastRefresherStep >= refresherInterval)
+        {
+            if (refresherCycle >= totalRefresherCycles)
+            {
+                refresherRunning = false;
+                display.clearDisplay(); // Clear after last step
+                display.display();
+            }
+            else
+            {
+                display.clearDisplay();
+                uint16_t color = (refresherCycle % 2 == 0) ? SSD1306_WHITE : SSD1306_BLACK;
+                display.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, color);
+                display.display();
+
+                refresherCycle++;
+                lastRefresherStep = currentMillis;
+            }
+        }
+    }
+
+    void updateDisplayEffects()
+    {
+        unsigned long currentMillis = millis();
+
+        display.invertDisplay(isNightTime());
+
+        // Pixel shift every 10 seconds
+        if (currentMillis - lastShiftTime >= 10000)
+        {
+            // Cycle shift in range [-1, 1]
+            xOffset = (xOffset + 1) % 3 - 1;
+            yOffset = (yOffset + 1) % 3 - 1;
+            lastShiftTime = currentMillis;
+        }
+    }
 
 public:
     Display() : display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET), dispalyInitialized(false)
@@ -65,11 +170,20 @@ public:
             levelDisplayStartMillis = millis();
         }
 
+        handlePixelRefresher();
+
+        if (refresherRunning)
+        {
+            return;
+        }
+
+        updateDisplayEffects();
+
         display.clearDisplay();
 
         display.setTextColor(SSD1306_WHITE);
 
-        display.setCursor(0, 0);
+        display.setCursor(xOffset, yOffset);
 
         if (levelData->isPumpOn)
         {
@@ -78,7 +192,7 @@ public:
             display.print(levelData->level);
             display.println('%');
 
-            display.setCursor(0, 25);
+            display.setCursor(xOffset, 25 + yOffset);
             display.setTextSize(3);
             display.println("PUMP:ON");
         }
@@ -100,7 +214,7 @@ public:
                 levelStartCursor = 28;
             }
 
-            display.setCursor(levelStartCursor, 20);
+            display.setCursor(levelStartCursor + xOffset, 20 + yOffset);
             display.setTextSize(4);
             display.print(levelData->level);
             display.println('%');
@@ -109,11 +223,11 @@ public:
         int infoCursorCol = 55;
 
         display.setTextSize(1);
-        display.setCursor(0, infoCursorCol);
+        display.setCursor(xOffset, infoCursorCol + yOffset);
 
         if (!printIp())
         {
-            display.setCursor(10, infoCursorCol);
+            display.setCursor(10 + xOffset, infoCursorCol + yOffset);
             display.println("Time: " + String(levelData->time));
         }
 
