@@ -92,9 +92,11 @@ public:
 
         display = d;
 
+        display->displayText("OTA: Initializing");
+
         if (WiFi.status() != WL_CONNECTED)
         {
-            display->displayText("OTA: NO WIFI.", false);
+            display->displayText("OTA: NO WIFI.", true);
             return;
         }
 

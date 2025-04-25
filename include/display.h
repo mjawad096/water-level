@@ -15,6 +15,7 @@ class Display
 private:
     Adafruit_SSD1306 display;
     bool dispalyInitialized;
+    String apSSID;
     unsigned long lastDisplayIpTime = 0;
     unsigned int displayIp = 1;
     unsigned long levelDisplayStartMillis = -1;
@@ -154,6 +155,11 @@ public:
         levelData = data;
     }
 
+    void setApSSID(String apSSID)
+    {
+        this->apSSID = apSSID;
+    }
+
     void setOtaInProgress(bool otaInProgress)
     {
         this->otaInProgress = otaInProgress;
@@ -244,14 +250,7 @@ public:
 
         if (millis() - lastDisplayIpTime > 5000)
         {
-            if (displayIp == 3)
-            {
-                displayIp = 1;
-            }
-            else
-            {
-                displayIp++;
-            }
+            displayIp = (displayIp % 4) + 1;
 
             lastDisplayIpTime = millis();
         }
@@ -266,12 +265,16 @@ public:
             break;
 
         case 2:
+            ipMessage = "SSID: " + apSSID;
+            break;
+
+        case 3:
             mac = WiFi.macAddress();
             mac.replace(":", "");
             ipMessage = "MAC: " + mac;
             break;
 
-        case 3:
+        case 4:
             mac = WiFi.softAPmacAddress();
             mac.replace(":", "");
             ipMessage = "APMAC: " + mac;

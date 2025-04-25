@@ -36,6 +36,8 @@ void setup()
 
 void loop()
 {
+    OtaManager::handle();
+
     buzzer.update();
     led.blink();
 

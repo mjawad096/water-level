@@ -16,13 +16,46 @@ public:
     {
         this->display = display;
 
-        WiFi.mode(WIFI_STA);
+        WiFi.mode(WIFI_AP_STA);
+
+        setupAccessPoint();
 
         connectWifi();
 
         OtaManager::setup(display);
 
+        logInfo();
+
         delay(2000);
+    }
+
+    void logInfo()
+    {
+        IPAddress IP = WiFi.softAPIP();
+        String apSSID = getWifiAPName();
+
+        Serial.printf("AP started -> SSID: %s, IP Address: %s", apSSID.c_str(), IP.toString().c_str());
+
+        display->setApSSID(apSSID);
+        display->displayText("AP: " + apSSID, false);
+    }
+
+    void setupAccessPoint()
+    {
+        String apSSID = getWifiAPName();
+
+        WiFi.softAP(apSSID, "", 1, 1);
+    }
+
+    String getWifiAPName()
+    {
+        // D1: WLD_84CCA881BD04
+        // D2: WLD_
+
+        String mac = WiFi.macAddress();
+        mac.replace(":", "");
+
+        return "WLD_" + mac;
     }
 
     void connectWifi()
@@ -43,5 +76,7 @@ public:
         Serial.println("Connected to WiFi");
 
         display->displayText("Connected to WiFi", false);
+
+        delay(2000);
     }
 };
