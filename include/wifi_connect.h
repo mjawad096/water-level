@@ -49,8 +49,9 @@ public:
 
     String getWifiAPName()
     {
-        // D1: WLD_84CCA881BD04
-        // D2: WLD_ECFABC965FAA
+        // D1: WLD_84CCA881BD04 Kitchen
+        // D2: WLD_807D3A4E8D08 Baramda
+        // D3: WLD_ECFABC965FAA Washroom
 
         String mac = WiFi.macAddress();
         mac.replace(":", "");
