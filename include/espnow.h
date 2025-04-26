@@ -11,8 +11,9 @@
 class EspNow
 {
 private:
-    uint8_t broadcastAddress1[6] = {0x84, 0xCC, 0xA8, 0x81, 0xBD, 0x04};
-    uint8_t broadcastAddress2[6] = {0xEC, 0xFA, 0xBC, 0x96, 0x5F, 0xAA};
+    uint8_t broadcastAddress1[6] = {0x84, 0xCC, 0xA8, 0x81, 0xBD, 0x04}; // Kitchen
+    uint8_t broadcastAddress2[6] = {0x80, 0x7D, 0x3A, 0x4E, 0x8D, 0x08}; // Baramda
+    uint8_t broadcastAddress3[6] = {0xEC, 0xFA, 0xBC, 0x96, 0x5F, 0xAA}; // WhiteBathroom
 
     esp_now_peer_info_t peerInfo;
     WifiConnect wifiConnect;
@@ -61,6 +62,18 @@ public:
         else
         {
             LOGL("Peer 2 added successfully");
+        }
+
+        // register third peer
+        memcpy(peerInfo.peer_addr, broadcastAddress3, 6);
+        if (esp_now_add_peer(&peerInfo) != ESP_OK)
+        {
+            LOGL("Failed to add peer");
+            return;
+        }
+        else
+        {
+            LOGL("Peer 3 added successfully");
         }
 
         esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
