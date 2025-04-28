@@ -4,6 +4,7 @@
 #include <Adafruit_SSD1306.h>
 #include <ESP8266WiFi.h>
 #include <waterlevel.h>
+#include <telnet_logger.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -140,7 +141,7 @@ public:
         if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
         {
             // Address 0x3D for 128x64
-            Serial.println(F("SSD1306 allocation failed"));
+            LOGL(F("SSD1306 allocation failed"));
 
             dispalyInitialized = false;
         }

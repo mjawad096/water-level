@@ -22,14 +22,14 @@ public:
 
     void setup(Display *display)
     {
-        wifiConnect.setup(display);
+        wifiConnect.setup(display, &waterLevelData);
 
         lastUpdatedMillis = millis();
 
         // Init ESP-NOW
         if (esp_now_init() != 0)
         {
-            Serial.println("Error initializing ESP-NOW");
+            LOGL("Error initializing ESP-NOW");
             return;
         }
 
@@ -44,7 +44,7 @@ public:
         // Register peer
         if (esp_now_add_peer(broadcastAddress, ESP_NOW_ROLE_COMBO, 0, NULL, 0) != 0)
         {
-            Serial.println("Failed to add peer");
+            LOGL("Failed to add peer");
             return;
         }
     }
@@ -60,19 +60,19 @@ public:
 
         if (result == 0)
         {
-            Serial.println("Data sent successfully");
+            LOGL("Data sent successfully");
         }
         else
         {
-            Serial.print("Error sending data: ");
-            Serial.println(result);
+            LOG("Error sending data: ");
+            LOGL(String(result));
         }
     }
 
     // Callback function that will be executed when data is received
     static void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
     {
-        Serial.printf("Bytes received: %d\n", len);
+        LOGF("Bytes received: %d\n", len);
 
         if (len < sizeof(WaterLevelData))
         {
@@ -82,7 +82,7 @@ public:
             if (strcmp(message, "P2FAIL") == 0)
             {
                 sentFailureForPeer2 = true;
-                Serial.println("P2FAIL received: Will resend water level data");
+                LOGL("P2FAIL received: Will resend water level data");
             }
 
             return;
@@ -92,24 +92,24 @@ public:
 
         lastUpdatedMillis = millis();
 
-        Serial.printf("Water Level: %d\nDistance: %.2f\nPump Status: %s\nFull Threshold: %ld\nEmpty Threshold: %ld\nAlarm Enabled: %s\nTime: %s\n",
-                      waterLevelData.level,
-                      waterLevelData.distance,
-                      waterLevelData.isPumpOn ? "ON" : "OFF",
-                      waterLevelData.fullThreshold,
-                      waterLevelData.emptyThreshold,
-                      waterLevelData.alarmEnabled ? "ON" : "OFF",
-                      waterLevelData.time);
+        LOGF("Water Level: %d\nDistance: %.2f\nPump Status: %s\nFull Threshold: %ld\nEmpty Threshold: %ld\nAlarm Enabled: %s\nTime: %s\n",
+             waterLevelData.level,
+             waterLevelData.distance,
+             waterLevelData.isPumpOn ? "ON" : "OFF",
+             waterLevelData.fullThreshold,
+             waterLevelData.emptyThreshold,
+             waterLevelData.alarmEnabled ? "ON" : "OFF",
+             waterLevelData.time);
 
-        Serial.printf("Size: %d\n", sizeof(waterLevelData));
+        LOGF("Size: %d\n", sizeof(waterLevelData));
     }
 
     // Callback when data is sent
     static void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
     {
-        Serial.print("Last Packet Send Status: ");
+        LOG("Last Packet Send Status: ");
 
-        Serial.println(sendStatus == 0 ? "Delivery success" : "Delivery fail");
+        LOGL(sendStatus == 0 ? "Delivery success" : "Delivery fail");
 
         sentFailureForPeer2 = sendStatus != 0;
     }

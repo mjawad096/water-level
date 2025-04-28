@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <display.h>
 #include <ota_manager.h>
+#include <telnet_logger.h>
 
 class WifiConnect
 {
@@ -12,7 +13,7 @@ private:
     const String ssid = "WL_1C72A8F7A608";
 
 public:
-    void setup(Display *display)
+    void setup(Display *display, WaterLevelData *waterLevelData)
     {
         this->display = display;
 
@@ -22,6 +23,7 @@ public:
 
         connectWifi();
 
+        TelnetLogger::setup(waterLevelData);
         OtaManager::setup(display);
 
         logInfo();
@@ -34,7 +36,7 @@ public:
         IPAddress IP = WiFi.softAPIP();
         String apSSID = getWifiAPName();
 
-        Serial.printf("AP started -> SSID: %s, IP Address: %s", apSSID.c_str(), IP.toString().c_str());
+        LOGF("AP started -> SSID: %s, IP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
 
         display->setApSSID(apSSID);
         display->displayText("AP: " + apSSID, false);
