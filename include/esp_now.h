@@ -10,7 +10,6 @@ class EspNow
 private:
     WifiConnect wifiConnect;
     uint8_t broadcastAddress[6] = {0x08, 0xA6, 0xF7, 0xA8, 0x72, 0x1C};
-    uint8_t broadcastAddress1[6] = {0x08, 0xA6, 0xF7, 0xA8, 0x72, 0x1D};
 
 public:
     void setup()
@@ -34,12 +33,6 @@ public:
             Serial.println("Failed to add peer");
             return;
         }
-
-        if (esp_now_add_peer(broadcastAddress1, ESP_NOW_ROLE_SLAVE, 0, NULL, 0) != 0)
-        {
-            Serial.println("Failed to add peer");
-            return;
-        }
     }
 
     // Callback when data is sent
@@ -59,6 +52,6 @@ public:
 
     void sendDistance(double distance)
     {
-        esp_now_send(NULL, (uint8_t *)&distance, sizeof(distance));
+        esp_now_send(broadcastAddress, (uint8_t *)&distance, sizeof(distance));
     }
 };
