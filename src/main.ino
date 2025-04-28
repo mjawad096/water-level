@@ -115,6 +115,8 @@ void loop()
 
     display.handlePixelRefresher();
 
+    espNow.checkIfSentFailureForPeer2();
+
     if (millis() - lastPingTime < settings.durationForPing * 1000)
     {
         return;

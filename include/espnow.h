@@ -11,9 +11,11 @@
 class EspNow
 {
 private:
-    uint8_t broadcastAddress1[6] = {0x84, 0xCC, 0xA8, 0x81, 0xBD, 0x04}; // Kitchen
-    uint8_t broadcastAddress2[6] = {0x80, 0x7D, 0x3A, 0x4E, 0x8D, 0x08}; // Baramda
-    uint8_t broadcastAddress3[6] = {0xEC, 0xFA, 0xBC, 0x96, 0x5F, 0xAA}; // WhiteBathroom
+    static uint8_t broadcastAddress1[6]; // Kitchen
+    static uint8_t broadcastAddress2[6]; // Baramda
+    static uint8_t broadcastAddress3[6]; // WhiteBathroom
+
+    static bool sentFailureForPeer2;
 
     esp_now_peer_info_t peerInfo;
     WifiConnect wifiConnect;
@@ -104,6 +106,27 @@ public:
         wifiConnect.checkWifiConnection();
     }
 
+    void checkIfSentFailureForPeer2()
+    {
+        if (!sentFailureForPeer2)
+            return;
+
+        const char *failureMessage = "P2FAIL"; // Event message for failure
+
+        esp_err_t result = esp_now_send(broadcastAddress1, (uint8_t *)failureMessage, strlen(failureMessage)); // Don't sent to P2 may result in loop
+
+        if (result == ESP_OK)
+        {
+            LOGD("Sent failure event for P2 to P1");
+        }
+        else
+        {
+            LOGL("Failed to send failure event for P2 to P1");
+        }
+
+        sentFailureForPeer2 = false; // Reset failure flag
+    }
+
     // callback when data is sent
     static void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status)
     {
@@ -114,6 +137,9 @@ public:
                  mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5]);
 
         LOGD("Packet to: " + String(macStr) + " -> " + String(status == ESP_NOW_SEND_SUCCESS ? "Success" : "Fail"));
+
+        if (status != ESP_NOW_SEND_SUCCESS)
+            sentFailureForPeer2 = memcmp(mac_addr, broadcastAddress2, 6) == 0;
     }
 
     // callback when data is received
@@ -137,3 +163,8 @@ public:
         }
     }
 };
+
+uint8_t EspNow::broadcastAddress1[6] = {0x84, 0xCC, 0xA8, 0x81, 0xBD, 0x04}; // Kitchen
+uint8_t EspNow::broadcastAddress2[6] = {0x80, 0x7D, 0x3A, 0x4E, 0x8D, 0x08}; // Baramda
+uint8_t EspNow::broadcastAddress3[6] = {0xEC, 0xFA, 0xBC, 0x96, 0x5F, 0xAA}; // WhiteBathroom
+bool EspNow::sentFailureForPeer2 = false;
