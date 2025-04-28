@@ -78,6 +78,8 @@ public:
             lastSendAttemptMillis = millis();
             retryCount++;
 
+            LOGF("Retrying... Attempt #%d, Retry Interval: %lu ms", retryCount, dynamicRetryInterval());
+
             int result = esp_now_send(broadcastAddress, (uint8_t *)&waterLevelData, sizeof(waterLevelData));
 
             if (result == 0)
