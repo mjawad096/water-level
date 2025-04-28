@@ -15,6 +15,23 @@ private:
     static uint8_t broadcastAddress[6]; // Baramda
 
     static bool sentFailureForPeer2; // Baramda
+    static int retryCount;
+
+    unsigned long lastSendAttemptMillis = 0;
+    const unsigned long baseRetryInterval = 500; // Base interval 500ms
+    const int maxRetries = 5;                    // Maximum retries before giving up
+
+    static void resetRetry()
+    {
+        sentFailureForPeer2 = false;
+        retryCount = 0;
+    }
+
+    unsigned long dynamicRetryInterval()
+    {
+        // Slightly increase retry interval for each failure (baseRetryInterval, 2*baseRetryInterval, etc.)
+        return baseRetryInterval * (retryCount + 1);
+    }
 
 public:
     static WaterLevelData waterLevelData;
@@ -51,28 +68,39 @@ public:
 
     void sendWaterLevelDataToPeer2()
     {
-        if (!sentFailureForPeer2)
+        if (!sentFailureForPeer2 || (millis() - lastSendAttemptMillis < dynamicRetryInterval()))
         {
             return;
         }
 
-        int result = esp_now_send(broadcastAddress, (uint8_t *)&waterLevelData, sizeof(waterLevelData));
-
-        if (result == 0)
+        if (retryCount < maxRetries)
         {
-            LOGL("Data sent successfully");
+            lastSendAttemptMillis = millis();
+            retryCount++;
+
+            int result = esp_now_send(broadcastAddress, (uint8_t *)&waterLevelData, sizeof(waterLevelData));
+
+            if (result == 0)
+            {
+                LOGL("Data sent successfully (queued)");
+            }
+            else
+            {
+                LOG("Error sending data: ");
+                LOGL(String(result));
+            }
         }
         else
         {
-            LOG("Error sending data: ");
-            LOGL(String(result));
+            LOGL("Max retries reached. Giving up sending.");
+            resetRetry();
         }
     }
 
     // Callback function that will be executed when data is received
     static void OnDataRecv(uint8_t *mac, uint8_t *incomingData, uint8_t len)
     {
-        LOGF("Bytes received: %d\n", len);
+        LOGF("Bytes received: %d", len);
 
         if (len < sizeof(WaterLevelData))
         {
@@ -92,26 +120,29 @@ public:
 
         lastUpdatedMillis = millis();
 
-        LOGF("Water Level: %d\nDistance: %.2f\nPump Status: %s\nFull Threshold: %ld\nEmpty Threshold: %ld\nAlarm Enabled: %s\nTime: %s\n",
+        LOGF("Water Level: %d, Distance: %.2f, Pump Status: %s, Full Threshold: %ld, Empty Threshold: %ld, Alarm Enabled: %s",
              waterLevelData.level,
              waterLevelData.distance,
              waterLevelData.isPumpOn ? "ON" : "OFF",
              waterLevelData.fullThreshold,
              waterLevelData.emptyThreshold,
-             waterLevelData.alarmEnabled ? "ON" : "OFF",
-             waterLevelData.time);
-
-        LOGF("Size: %d\n", sizeof(waterLevelData));
+             waterLevelData.alarmEnabled ? "ON" : "OFF");
     }
 
     // Callback when data is sent
     static void OnDataSent(uint8_t *mac_addr, uint8_t sendStatus)
     {
-        LOG("Last Packet Send Status: ");
+        LOGL("Last Packet Send Status: ");
 
-        LOGL(sendStatus == 0 ? "Delivery success" : "Delivery fail");
+        LOG(sendStatus == 0 ? "Delivery success" : "Delivery fail");
 
         sentFailureForPeer2 = sendStatus != 0;
+
+        if (sendStatus == 0)
+        {
+            // If delivery succeeded, reset retry counter
+            retryCount = 0;
+        }
     }
 
     bool isLastUpdatedMoreThan(int minutes)
@@ -124,3 +155,4 @@ uint8_t EspNow::broadcastAddress[6] = {0x80, 0x7D, 0x3A, 0x4E, 0x8D, 0x08}; // B
 WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00 AM"};
 unsigned long EspNow::lastUpdatedMillis = 0;
 bool EspNow::sentFailureForPeer2 = false;
+int EspNow::retryCount = 0;

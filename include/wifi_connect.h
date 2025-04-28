@@ -36,7 +36,7 @@ public:
         IPAddress IP = WiFi.softAPIP();
         String apSSID = getWifiAPName();
 
-        LOGF("AP started -> SSID: %s, IP Address: %s\n", apSSID.c_str(), IP.toString().c_str());
+        LOGF("AP started -> SSID: %s, IP Address: %s", apSSID.c_str(), IP.toString().c_str());
 
         display->setApSSID(apSSID);
         display->displayText("AP: " + apSSID, false);

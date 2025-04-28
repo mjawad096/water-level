@@ -37,6 +37,7 @@ void setup()
 void loop()
 {
     OtaManager::handle();
+    TelnetLogger::handleClient();
 
     buzzer.update();
     led.blink();

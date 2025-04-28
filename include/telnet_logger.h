@@ -109,7 +109,7 @@ public:
 
         va_end(args);
 
-        log(buffer, false);
+        log(buffer, true);
     }
 
     static bool isClientConnected()
