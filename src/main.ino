@@ -68,6 +68,7 @@ void loop()
     }
 
     display.displayLevel();
+    espNow.sendWaterLevelDataToPeer2();
 }
 
 bool isLowLevel()

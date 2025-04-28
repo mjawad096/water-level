@@ -1,9 +1,9 @@
+#pragma once
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <ESP8266WiFi.h>
 #include <waterlevel.h>
-
-#pragma once
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels

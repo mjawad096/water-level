@@ -1,8 +1,8 @@
+#pragma once
+
 #include <ESP8266WiFi.h>
 #include <display.h>
 #include <ota_manager.h>
-
-#pragma once
 
 class WifiConnect
 {
