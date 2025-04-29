@@ -46,14 +46,14 @@ public:
     {
         String apSSID = getWifiAPName();
 
-        WiFi.softAP(apSSID, "", 1, 1);
+        WiFi.softAP(apSSID, "PWD_" + apSSID.substring(4));
     }
 
     String getWifiAPName()
     {
-        // D1: WLD_84CCA881BD04 Kitchen
-        // D2: WLD_807D3A4E8D08 Baramda
-        // D3: WLD_ECFABC965FAA Washroom
+        // D1: WLD_84CCA881BD04 -- PWD_84CCA881BD04 Kitchen
+        // D2: WLD_807D3A4E8D08 -- PWD_807D3A4E8D08 Baramda
+        // D3: WLD_ECFABC965FAA -- PWD_ECFABC965FAA Washroom
 
         String mac = WiFi.macAddress();
         mac.replace(":", "");
