@@ -21,16 +21,33 @@ private:
     unsigned int displayIp = 1;
     unsigned long levelDisplayStartMillis = -1;
 
-    int xOffset = 0;
-    int yOffset = 0;
-    unsigned long lastShiftTime = 0;
-    unsigned long lastInvertTime = 0;
-
+    // Pixel refresher variables like a balck and white screen flashing
     bool refresherRunning = true;
     int refresherCycle = 0;
     unsigned long lastRefresherStep = 0;
     const int totalRefresherCycles = 100;
     const unsigned long refresherInterval = 300.0; // ms
+
+    // Heading marquee variables
+    String marqueeText1 = "";
+    String marqueeText2 = "--------------------";
+    int marqueeOffset = 0;
+    unsigned long lastMarqueeUpdate = 0;
+    const unsigned long marqueeSpeed = 100; // in ms
+
+    // Time animation variables
+    int timeOffsetX = 0;
+    int timeOffsetDir = 1; // 1 = right, -1 = left
+    unsigned long lastTimeOffsetUpdate = 0;
+    const unsigned long timeOffsetInterval = 300; // ms
+    const int timeOffsetMax = 20;                 // Max movement in pixels`
+
+    // Time animation variables
+    int levelOffsetX = 0;
+    int levelOffsetDir = 1; // 1 = right, -1 = left
+    unsigned long lastLevelOffsetUpdate = 0;
+    const unsigned long levelOffsetInterval = 200; // ms
+    int levelOffsetMax = 32;                       // Max movement in pixels`
 
     bool otaInProgress = false;
 
@@ -62,8 +79,8 @@ private:
         }
 
         // Now hour is in 0–23
-        // Night time is from 00 (12Am) to 3:59 AM (before 4)
-        return (hour >= 00 && hour < 4);
+        // Night time is from 6PM to 5:59 AM
+        return (hour >= 18 || hour < 7);
     }
 
     bool isMidnight()
@@ -77,20 +94,46 @@ private:
         display.ssd1306_command(dim ? 0x10 : 0xFF); // 0x10 = dimmed, 0xFF = full brightness
     }
 
-    void updateDisplayEffects()
+    void updateTheAnimationOffsets()
     {
         unsigned long currentMillis = millis();
 
         display.invertDisplay(isNightTime());
         // dimDisplay(isNightTime());
 
-        // Pixel shift every 10 seconds
-        if (currentMillis - lastShiftTime >= 10000)
+        if (millis() - lastMarqueeUpdate > marqueeSpeed)
         {
-            // Cycle shift in range [-1, 1]
-            xOffset = (xOffset + 1) % 3 - 1;
-            yOffset = (yOffset + 1) % 3 - 1;
-            lastShiftTime = currentMillis;
+            marqueeOffset--;
+            lastMarqueeUpdate = millis();
+
+            if (-marqueeOffset > SCREEN_WIDTH) // 6 pixels per char approx
+            {
+                marqueeOffset = SCREEN_WIDTH; // reset off-screen
+            }
+        }
+
+        if (millis() - lastTimeOffsetUpdate >= timeOffsetInterval)
+        {
+            timeOffsetX += timeOffsetDir;
+
+            if (timeOffsetX >= timeOffsetMax || timeOffsetX <= 0)
+            {
+                timeOffsetDir *= -1; // Change direction
+            }
+
+            lastTimeOffsetUpdate = millis();
+        }
+
+        if (millis() - lastLevelOffsetUpdate >= levelOffsetInterval)
+        {
+            levelOffsetX += levelOffsetDir;
+
+            if (levelOffsetX >= levelOffsetMax || levelOffsetX <= 0)
+            {
+                levelOffsetDir *= -1; // Change direction
+            }
+
+            lastLevelOffsetUpdate = millis();
         }
     }
 
@@ -188,13 +231,26 @@ public:
             return;
         }
 
+        marqueeText1 = "Water Level (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")";
+
+        levelOffsetMax = 80;
+
+        if (levelData->level > 99)
+        {
+            levelOffsetMax = 32;
+        }
+        else if (levelData->level == -1 || levelData->level > 9)
+        {
+            levelOffsetMax = 56;
+        }
+
+        updateTheAnimationOffsets();
+
         display.clearDisplay();
 
         display.setTextColor(SSD1306_WHITE);
 
-        updateDisplayEffects();
-
-        display.setCursor(xOffset, yOffset);
+        display.setCursor(0, 0);
 
         if (levelData->isPumpOn)
         {
@@ -203,29 +259,26 @@ public:
             display.print(levelData->level);
             display.println('%');
 
-            display.setCursor(xOffset, 25 + yOffset);
+            display.setCursor(0, 25);
             display.setTextSize(3);
             display.println("PUMP:ON");
         }
         else
         {
+            int numVisibleChars = marqueeText1.length();
+
+            if (marqueeOffset > 2)
+            {
+                numVisibleChars = (int)((SCREEN_WIDTH - marqueeOffset) / 6); // Approx 6 pixels per char
+            }
+
             display.setTextSize(1);
-            display.print("Water Level");
-            display.println(" (Wifi:" + String(WiFi.status() == WL_CONNECTED ? "V" : "X") + ")");
-            display.println("--------------------");
+            display.setCursor(marqueeOffset, 0);
+            display.print(marqueeText1.substring(0, numVisibleChars));
+            display.setCursor(marqueeOffset, 8);
+            display.print(marqueeText2.substring(0, numVisibleChars));
 
-            int levelStartCursor = 40;
-
-            if (levelData->level > 99)
-            {
-                levelStartCursor = 16;
-            }
-            else if (levelData->level == -1 || levelData->level > 9)
-            {
-                levelStartCursor = 28;
-            }
-
-            display.setCursor(levelStartCursor + xOffset, 20 + yOffset);
+            display.setCursor(levelOffsetX, 20);
             display.setTextSize(4);
             display.print(levelData->level);
             display.println('%');
@@ -234,12 +287,12 @@ public:
         int infoCursorCol = 55;
 
         display.setTextSize(1);
-        display.setCursor(xOffset, infoCursorCol + yOffset);
+        display.setCursor(0, infoCursorCol);
 
         if (!printIp())
         {
-            display.setCursor(10 + xOffset, infoCursorCol + yOffset);
-            display.println("Time: " + String(levelData->time));
+            display.setCursor(timeOffsetX, infoCursorCol);
+            display.println("Time: " + TimeManager::getTimeString(true));
         }
 
         display.display();

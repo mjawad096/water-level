@@ -18,6 +18,7 @@ Database database;
 Led led;
 Buzzer buzzer;
 
+WaterLevelData levelData;
 int level = -1;
 bool isPumpOn = false;
 
@@ -117,6 +118,8 @@ void loop()
 
     espNow.checkIfSentFailureForPeer2();
 
+    display.displayLevel(&levelData);
+
     if (millis() - lastPingTime < settings.durationForPing * 1000)
     {
         return;
@@ -143,7 +146,7 @@ bool isHighLevel()
 
 void processWaterLevel()
 {
-    WaterLevelData levelData = waterLevel.getLevel();
+    levelData = waterLevel.getLevel();
 
     // Filter out the noise
     if (level != -1 && !WaterLevel::isLastUpdatedMoreThan(1) && abs(level - levelData.level) >= 4 && continueInvalidLevelCount < 9)
@@ -163,8 +166,6 @@ void processWaterLevel()
     webServer.setWaterLevel(&levelData);
 
     espNow.sendWaterLevel(&levelData);
-
-    display.displayLevel(&levelData);
 
     database.saveLevelEntry(&levelData);
 }

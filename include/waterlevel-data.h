@@ -14,6 +14,9 @@ struct __attribute__((packed)) WaterLevelData
     bool alarmEnabled;
     char time[12]; // HH:MM:SS AM + null terminator
 
+    WaterLevelData()
+        : WaterLevelData(-1, -1, false, 0, 0) {}
+
     WaterLevelData(int l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
     {
         level = l;
@@ -23,13 +26,18 @@ struct __attribute__((packed)) WaterLevelData
         emptyThreshold = eth;
         alarmEnabled = alarm;
 
-        int maxCopyLen = sizeof(time) - 1;
-        strncpy(time, t, maxCopyLen);
-        time[maxCopyLen] = '\0'; // Ensure null termination
+        setTime(t);
     }
 
     WaterLevelData(double l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
         : WaterLevelData(static_cast<int>(round(l)), d, o, eth, fth, alarm, t) {}
+
+    void setTime(const char *t)
+    {
+        int maxCopyLen = sizeof(time) - 1;
+        strncpy(time, t, maxCopyLen);
+        time[maxCopyLen] = '\0'; // Ensure null termination
+    }
 
     void formatForSSEvent(char *buffer)
     {
