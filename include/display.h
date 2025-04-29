@@ -99,7 +99,7 @@ private:
         unsigned long currentMillis = millis();
 
         display.invertDisplay(isNightTime());
-        // dimDisplay(isNightTime());
+        dimDisplay(isNightTime());
 
         if (millis() - lastMarqueeUpdate > marqueeSpeed)
         {
