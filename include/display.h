@@ -130,6 +130,11 @@ private:
 
             if (levelOffsetX >= levelOffsetMax || levelOffsetX <= 0)
             {
+                if (levelOffsetX >= levelOffsetMax)
+                {
+                    levelOffsetX = levelOffsetMax;
+                }
+
                 levelOffsetDir *= -1; // Change direction
             }
 
