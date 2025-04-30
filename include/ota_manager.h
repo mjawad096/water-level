@@ -43,7 +43,7 @@ private:
     {
         unsigned int currentProgress = static_cast<unsigned int>((progress * 100) / total);
 
-        if (currentProgress == lastProgress || (currentProgress % 3 != 0 && currentProgress != 100))
+        if (currentProgress == lastProgress || (currentProgress > 1 && currentProgress % 3 != 0 && currentProgress != 100))
             return;
 
         display->displayText("OTA: Started");
@@ -82,6 +82,9 @@ private:
         }
 
         display->displayText(message, false);
+        delay(2000);
+
+        display->setOtaInProgress(false);
     }
 
 public:
