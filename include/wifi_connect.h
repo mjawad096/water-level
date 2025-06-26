@@ -107,6 +107,12 @@ public:
             previousMillis = currentMillis;
 
             connectWifi();
+
+            if (WiFi.status() == WL_CONNECTED && !TimeManager::isInitialized())
+            {
+                // If WiFi is connected but time is not initialized, restart the ESP
+                ESP.restart();
+            }
         }
     }
 
