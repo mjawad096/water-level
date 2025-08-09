@@ -41,6 +41,9 @@ public:
         this->currentSensor = currentSensor;
         this->buzzer = buzzer;
 
+        lastSentOnTime = millis() - (settings->delayStartSwitch * 1000);
+        lastSentOffTime = millis() - (settings->delayStopSwitch * 1000);
+
         pinMode(externalPin, OUTPUT);
         pinMode(internalPin, INPUT_PULLUP);
 
