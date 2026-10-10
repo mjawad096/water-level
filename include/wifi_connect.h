@@ -46,7 +46,9 @@ public:
     {
         String apSSID = getWifiAPName();
 
-        WiFi.softAP(apSSID, "PWD_" + apSSID.substring(4));
+        // Hidden, like the other boards here. The channel argument is only
+        // there because hidden sits behind it.
+        WiFi.softAP(apSSID, "PWD_" + apSSID.substring(4), 1, 1);
     }
 
     String getWifiAPName()
