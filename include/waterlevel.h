@@ -60,7 +60,8 @@ public:
             settings->emptyThreshold,
             settings->fullThreshold,
             settings->alarmEnabled,
-            TimeManager::getTimeString(true).c_str());
+            TimeManager::getTimeString(true).c_str(),
+            settings->debugLogging);
     }
 
     static bool isLastUpdatedMoreThan(unsigned long minutes);

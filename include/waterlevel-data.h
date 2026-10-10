@@ -14,10 +14,15 @@ struct __attribute__((packed)) WaterLevelData
     bool alarmEnabled;
     char time[12]; // HH:MM:SS AM + null terminator
 
+    // Last on purpose. A display built before this field existed reads the
+    // bytes in front of it and stops, so main can be flashed first and the
+    // displays follow whenever.
+    bool debugLogging;
+
     WaterLevelData()
         : WaterLevelData(-1, -1, false, 0, 0) {}
 
-    WaterLevelData(int l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
+    WaterLevelData(int l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00", bool debug = false)
     {
         level = l;
         distance = d;
@@ -25,12 +30,13 @@ struct __attribute__((packed)) WaterLevelData
         fullThreshold = fth;
         emptyThreshold = eth;
         alarmEnabled = alarm;
+        debugLogging = debug;
 
         setTime(t);
     }
 
-    WaterLevelData(double l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00")
-        : WaterLevelData(static_cast<int>(round(l)), d, o, eth, fth, alarm, t) {}
+    WaterLevelData(double l, double d, bool o, long eth, long fth, bool alarm = false, const char *t = "00:00:00", bool debug = false)
+        : WaterLevelData(static_cast<int>(round(l)), d, o, eth, fth, alarm, t, debug) {}
 
     void setTime(const char *t)
     {
