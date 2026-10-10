@@ -7,6 +7,9 @@
 #include <logger.h>
 #include <ota_manager.h>
 #include <ESPmDNS.h>
+#include <esp_netif.h>
+#include <esp_netif_net_stack.h>
+#include <lwip/etharp.h>
 
 class WifiConnect
 {
@@ -20,6 +23,9 @@ private:
     const unsigned long interval = 300000;
 
     static bool wifiConnecting;
+
+    unsigned long lastArp = 0;
+    static const unsigned long arpInterval = 30000;
 
 public:
     WifiConnect()
@@ -96,6 +102,8 @@ public:
 
             previousMillis = currentMillis;
 
+            announceOurselves();
+
             if (WiFi.status() == WL_CONNECTED && !TimeManager::isInitialized())
             {
                 // If WiFi is connected but time is not initialized, restart the ESP
@@ -114,6 +122,33 @@ public:
 
             connectWifi();
         }
+    }
+
+    // This board says nothing for minutes at a time, so the router drops it
+    // from the table it answers ARP from, and then has neither an answer nor
+    // a reason to pass the question on. A laptop that has just joined has to
+    // ask, and waits -- 47 seconds, measured on the rf-switch board behind
+    // this same router. A phone is never forgotten because a phone never
+    // stops talking. So talk.
+    //
+    // The esp8266 core has a helper for this; esp32 does not, but it is the
+    // same lwip underneath.
+    void announceOurselves()
+    {
+        if (millis() - lastArp < arpInterval)
+            return;
+
+        lastArp = millis();
+
+        esp_netif_t *netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+
+        if (!netif)
+            return;
+
+        struct netif *stack = (struct netif *)esp_netif_get_netif_impl(netif);
+
+        if (stack)
+            etharp_gratuitous(stack);
     }
 
     void connectWifi()
