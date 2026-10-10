@@ -405,20 +405,20 @@ public:
 
         if (request->hasParam("type", false))
         {
-            AsyncWebParameter *p = request->getParam("type", false);
+            const AsyncWebParameter *p = request->getParam("type", false);
 
             logType = getLogTypeFromString(p->value());
         }
 
         if (request->hasParam("date", false))
         {
-            AsyncWebParameter *p = request->getParam("date", false);
+            const AsyncWebParameter *p = request->getParam("date", false);
             date = p->value();
         }
 
         if (request->hasParam("file", false))
         {
-            AsyncWebParameter *p = request->getParam("file", false);
+            const AsyncWebParameter *p = request->getParam("file", false);
             _file = p->value();
         }
 
@@ -483,7 +483,7 @@ public:
 
         if (request->hasParam("type", false))
         {
-            AsyncWebParameter *p = request->getParam("type", false);
+            const AsyncWebParameter *p = request->getParam("type", false);
 
             logType = getLogTypeFromString(p->value());
         }
