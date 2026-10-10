@@ -40,6 +40,11 @@ void loop()
     TelnetLogger::handleClient();
 
     buzzer.update();
+
+    TelnetLogger::setEnabled(waterLevelData->debugLogging);
+
+    led.setDark(EspNow::panelLightsOff);
+
     led.blink();
 
     if (espNow.isLastUpdatedMoreThan(3))

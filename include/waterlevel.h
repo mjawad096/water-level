@@ -9,4 +9,5 @@ struct __attribute__((packed)) WaterLevelData
     long emptyThreshold;
     bool alarmEnabled;
     char time[12];
+    bool debugLogging;
 };

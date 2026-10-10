@@ -14,6 +14,16 @@ private:
 
     static uint8_t broadcastAddress[6]; // Baramda
 
+    // From the goodwe panel beside this one. Shape fixed by its light_link.h.
+    static const uint8_t LIGHTS_MAGIC = 0x4C;
+
+    struct __attribute__((packed)) PanelLights
+    {
+        uint8_t magic;
+        uint8_t version;
+        uint8_t on;
+    };
+
     static bool sentFailureForPeer2; // Baramda
     static int retryCount;
 
@@ -36,6 +46,9 @@ private:
 public:
     static WaterLevelData waterLevelData;
     static unsigned long lastUpdatedMillis;
+
+    // Not off until told, so a display the panel cannot reach is unaffected.
+    static bool panelLightsOff;
 
     void setup(Display *display)
     {
@@ -104,6 +117,22 @@ public:
     {
         LOGF("Bytes received: %d", len);
 
+        if (len == sizeof(PanelLights) && incomingData[0] == LIGHTS_MAGIC)
+        {
+            PanelLights msg;
+            memcpy(&msg, incomingData, sizeof(msg));
+
+            bool off = msg.on == 0;
+
+            if (off != panelLightsOff)   // repeats every few minutes
+            {
+                panelLightsOff = off;
+                LOGF("Panel lights %s", off ? "off" : "on");
+            }
+
+            return;
+        }
+
         if (len < sizeof(WaterLevelData))
         {
             char message[32] = {0}; // make sure it's zero-initialized
@@ -154,7 +183,8 @@ public:
 };
 
 uint8_t EspNow::broadcastAddress[6] = {0x80, 0x7D, 0x3A, 0x4E, 0x8D, 0x08}; // Baramda
-WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00 AM"};
+WaterLevelData EspNow::waterLevelData = {-1, -1, false, -1, -1, false, "00:00:00 AM", true};
 unsigned long EspNow::lastUpdatedMillis = 0;
+bool EspNow::panelLightsOff = false;
 bool EspNow::sentFailureForPeer2 = false;
 int EspNow::retryCount = 0;

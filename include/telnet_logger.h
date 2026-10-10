@@ -11,6 +11,7 @@ private:
     static WiFiClient client;
     static bool started;
     static bool serialEnabled;
+    static bool enabled;
 
     static WaterLevelData *waterLevelData;
 
@@ -60,8 +61,15 @@ public:
         }
     }
 
+    // One gate for everything, rather than a check at each call site. Off
+    // costs nothing: the String below is never built.
+    static void setEnabled(bool on) { enabled = on; }
+
     static void log(const String &msg, bool newLine = true)
     {
+        if (!enabled)
+            return;
+
         if (!started)
             return;
 
@@ -101,6 +109,9 @@ public:
 
     static void logf(const char *format, ...)
     {
+        if (!enabled)
+            return;
+
         va_list args;
         va_start(args, format);
 
@@ -129,6 +140,7 @@ WiFiClient TelnetLogger::client;
 WaterLevelData *TelnetLogger::waterLevelData = nullptr;
 bool TelnetLogger::started = false;
 bool TelnetLogger::serialEnabled = true;
+bool TelnetLogger::enabled = true;
 
 #define LOG(x) TelnetLogger::log(x, false)        // Log without new line
 #define LOGL(x) TelnetLogger::log(x)              // Log with new line

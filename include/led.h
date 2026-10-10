@@ -16,6 +16,11 @@ private:
     bool ledState;
     bool blinking;
 
+    // Dark means dark. The patterns go on running and keep their place --
+    // they just do not light anything, so whatever was being shown is still
+    // being shown when it comes back.
+    bool dark = false;
+
 public:
     Led(int pin = LED_BUILTIN) : ledPin(pin)
     {
@@ -37,8 +42,22 @@ public:
         on();
     }
 
+    void setDark(bool value)
+    {
+        if (value == dark)
+            return;
+
+        dark = value;
+
+        if (dark)
+            off();
+    }
+
     void on()
     {
+        if (dark)
+            return;
+
         digitalWrite(ledPin, ON);
     }
 
